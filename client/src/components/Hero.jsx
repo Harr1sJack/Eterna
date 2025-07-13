@@ -17,8 +17,19 @@ const Hero = () => {
                 Discover antiques, collectibles, and limited edition treasures—or list your own!
             </p>
             <div className="flex items-center gap-x-4 justify-center">
-                <button className="btn btn-primary font-sans">Explore Products</button>
-                <button className="btn btn-primary font-sans">Upload Product</button>
+                <button className="text-xl px-4 py-3 bg-[#431363] text-white border border-[#4f2478] rounded-md 
+                 hover:bg-[#55217d] hover:border-[#ded0ff] 
+                 transform hover:scale-105 transition duration-200 ease-in-out font-sans">
+                 Explore Products
+                </button>
+
+                <button className="text-xl px-4 py-3 bg-[#431363] text-white border border-[#4f2478] rounded-md 
+                 hover:bg-[#55217d] hover:border-[#ded0ff] 
+                 transform hover:scale-105 transition duration-200 ease-in-out font-sans">
+                 Upload Product
+                </button>
+
+
             </div>
         </div>
         </div>

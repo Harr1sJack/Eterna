@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 
 const NavBar = () => {
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+
+  const toggleDropdown = () => setDropdownOpen(prev => !prev);
 
   return (
     <div className="navbar bg-base-100 shadow-sm px-4 sm:px-6">
@@ -15,8 +17,8 @@ const NavBar = () => {
         </Link>
       </div>
 
-      {/* Desktop nav */}
-      <div className="hidden lg:flex gap-2">
+      <div className="hidden lg:flex gap-2 text-[#431363] items-center">
+        {/* Other nav links */}
         <Link to="#" className="btn btn-ghost text-lg font-sans hover:scale-105">
           Explore Products
         </Link>
@@ -26,60 +28,33 @@ const NavBar = () => {
         <Link to="#" className="btn btn-ghost text-lg font-sans hover:scale-105">
           My Uploads
         </Link>
-        <Link to="#" className="btn btn-ghost text-lg font-sans hover:scale-105">
-          Login / Register
-        </Link>
-      </div>
 
-      {/* Mobile dropdown */}
-      <div className="lg:hidden">
-        <button
-          className="btn btn-ghost btn-circle"
-          onClick={() => setMenuOpen(!menuOpen)}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-6 w-6"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
+        {/* Avatar + Dropdown */}
+        <div className="relative ml-4">
+          <div
+            className="avatar cursor-pointer"
+            onClick={toggleDropdown}
           >
-            {menuOpen ? (
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
+            <div className="w-12 rounded-full border-purple-300">
+              <img
+                src="/assets/car.jpg"
+                alt="Profile"
+                className="object-cover"
               />
-            ) : (
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4 6h16M4 12h16M4 18h16"
-              />
-            )}
-          </svg>
-        </button>
-      </div>
+            </div>
+          </div>
 
-      {/* Dropdown menu */}
-      {menuOpen && (
-        <div className="absolute top-[64px] right-4 w-48 bg-base-200 rounded-box p-4 shadow-md flex flex-col gap-2 z-50">
-          <Link to="#" className="btn btn-ghost justify-start font-sans text-base">
-            Explore Products
-          </Link>
-          <Link to="#" className="btn btn-ghost justify-start font-sans text-base">
-            Upload Product
-          </Link>
-          <Link to="#" className="btn btn-ghost justify-start font-sans text-base">
-            My Uploads
-          </Link>
-          <Link to="#" className="btn btn-ghost justify-start font-sans text-base">
-            Login / Register
-          </Link>
+          {/* Dropdown shown only when open */}
+          <div className={`absolute right-0 mt-4 w-48 bg-white/90 backdrop-blur-md 
+              border border-[#431363] rounded-lg shadow-lg text-[#431363] transform 
+              transition-transform duration-300 ease-in-out z-50
+              ${dropdownOpen ? 'translate-y-0 opacity-100' : '-translate-y-4 opacity-0 pointer-events-none'}`}>
+            <Link to="/profile" className="block px-4 py-2 hover:bg-gray-100">Edit Profile</Link>
+            <Link to="/register" className="block px-4 py-2 hover:bg-gray-100">Register</Link>
+            <Link to="/login" className="block px-4 py-2 hover:bg-gray-100">Login</Link>
+          </div>
         </div>
-      )}
+      </div>
     </div>
   );
 };
