@@ -15,6 +15,7 @@ export default {
   },
   plugins: [daisyui],
   daisyui: {
-    themes: ["forest","business","light","garden","bumblebee","emerald"]
+    themes: ["dark","forest","business","light","garden","bumblebee","emerald"]
   }
 }
+

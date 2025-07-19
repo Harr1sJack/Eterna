@@ -1,7 +1,21 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 
 const Register = () => {
+  const navigate = useNavigate();
+  const [form, setForm] = useState({ name: '', email: '', password: '' });
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    // Registration logic here (API call etc.)
+    // On success, redirect to profile page
+    navigate('/profile');
+  };
+
   return (
     <div
       className="min-h-screen bg-cover bg-center relative flex items-center justify-center"
@@ -18,13 +32,17 @@ const Register = () => {
             Get Started Now
           </h2>
 
-          <form className="space-y-4 w-[350px]">
+          <form className="space-y-4 w-[350px]" onSubmit={handleSubmit}>
             <div>
               <p className="text-sm text-gray-700">Name</p>
               <input
                 type="text"
+                name="name"
                 placeholder="Your Name"
+                value={form.name}
+                onChange={handleChange}
                 className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-purple-400"
+                required
               />
             </div>
 
@@ -32,8 +50,12 @@ const Register = () => {
               <p className="text-sm text-gray-700">Email Address</p>
               <input
                 type="email"
+                name="email"
                 placeholder="you@example.com"
+                value={form.email}
+                onChange={handleChange}
                 className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-purple-400"
+                required
               />
             </div>
 
@@ -41,8 +63,12 @@ const Register = () => {
               <p className="text-sm text-gray-700">Password</p>
               <input
                 type="password"
+                name="password"
                 placeholder="••••••••"
+                value={form.password}
+                onChange={handleChange}
                 className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-purple-400"
+                required
               />
             </div>
 

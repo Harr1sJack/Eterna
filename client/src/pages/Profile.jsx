@@ -18,11 +18,19 @@ const Profile = () => {
   };
 
   return (
-    <div
-  className="min-h-screen bg-cover bg-center py-10 px-4 flex justify-center"
-  style={{ backgroundImage: "url('/assets/loginbk1.jpg')" }}
-     >
-      <div className="bg-white shadow-lg rounded-xl p-8 w-full max-w-3xl">
+    <div className="relative min-h-screen pt-24 py-10 px-4 flex justify-center overflow-hidden">
+      
+      {/* Background Image with Blur */}
+      <div
+        className="absolute inset-0 bg-cover bg-center filter blur-md z-0"
+        style={{ backgroundImage: "url('/assets/loginbk1.jpg')" }}
+      ></div>
+
+      {/* Optional Opacity Layer */}
+      <div className="absolute inset-0 bg-black/5 z-0"></div> {/* Adjust opacity here */}
+
+      {/* Main Content */}
+      <div className="relative z-10 bg-white shadow-lg rounded-xl p-8 w-full max-w-3xl">
         <div className="flex items-center space-x-6 mb-8">
           <div className="relative">
             <img

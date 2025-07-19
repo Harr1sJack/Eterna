@@ -1,32 +1,48 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const NavBar = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const navigate = useNavigate();
 
   const toggleDropdown = () => setDropdownOpen(prev => !prev);
+  const goBack = () => navigate(-1);
 
   return (
-    <div className="navbar bg-base-100 shadow-sm px-4 sm:px-6">
-      <div className="flex-1">
+    <div className="navbar fixed top-0 z-50 w-full px-4 sm:px-6 backdrop-blur-md bg-white/40 border-b border-white/10 shadow-sm">
+      {/* Left Section */}
+      <div className="flex items-center gap-4 flex-1">
         <Link
           to="/"
-          className="text-3xl sm:text-4xl font-sans font-extralight text-primary"
+          className="text-3xl sm:text-4xl font-semibold tracking-wide font-sans text-[#431363]"
         >
           Eterna
         </Link>
+
+        <Link
+            to="/"
+           className="btn btn-ghost text-lg font-sans text-[#431363] hover:scale-105"
+         >
+            Home
+        </Link>
+
+       <button
+        onClick={goBack}
+        className="btn btn-ghost text-lg font-sans text-[#431363] hover:scale-105"
+       >
+         Back
+       </button>
+
       </div>
 
-      <div className="hidden lg:flex gap-2 text-[#431363] items-center">
-        {/* Other nav links */}
-        <Link to="#" className="btn btn-ghost text-lg font-sans hover:scale-105">
-          Explore Products
+      {/* Right Section */}
+      <div className="hidden lg:flex gap-3 text-[#431363] items-center">
+        <Link to="/about" className="btn btn-ghost text-lg font-sans hover:scale-105">
+        About
         </Link>
-        <Link to="#" className="btn btn-ghost text-lg font-sans hover:scale-105">
-          Upload Product
-        </Link>
-        <Link to="#" className="btn btn-ghost text-lg font-sans hover:scale-105">
-          My Uploads
+  
+        <Link to="/contact" className="btn btn-ghost text-lg font-sans hover:scale-105">
+          Contact
         </Link>
 
         {/* Avatar + Dropdown */}
@@ -44,7 +60,7 @@ const NavBar = () => {
             </div>
           </div>
 
-          {/* Dropdown shown only when open */}
+          {/* Dropdown */}
           <div className={`absolute right-0 mt-4 w-48 bg-white/90 backdrop-blur-md 
               border border-[#431363] rounded-lg shadow-lg text-[#431363] transform 
               transition-transform duration-300 ease-in-out z-50
