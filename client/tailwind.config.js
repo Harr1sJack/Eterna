@@ -7,10 +7,15 @@ export default {
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        slabo: ['"Slabo 27px"', 'serif']
+      }
+    },
   },
   plugins: [daisyui],
   daisyui: {
-    themes: ["forest","business"]
+    themes: ["dark","forest","business","light","garden","bumblebee","emerald"]
   }
 }
+
