@@ -1,19 +1,49 @@
+// src/pages/Register.jsx
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
+import axios from 'axios';
+import { useAuth } from '../context/AuthContext';
 
 const Register = () => {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [form, setForm] = useState({ name: '', email: '', password: '' });
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Registration logic here (API call etc.)
-    // On success, redirect to profile page
-    navigate('/profile');
+    if (loading) return;
+    setLoading(true);
+
+    try {
+      const res = await axios.post(
+        `${import.meta.env.VITE_SERVER_URL}/api/auth/signup`,
+        {
+          name: form.name,
+          email: form.email,
+          password: form.password,
+        }
+      );
+
+      const token = res.data?.token;
+      if (token) {
+        login(token);
+      }
+
+      toast.success('Signed Up Successfully!');
+      toast("Edit your profile later for\npersonalized experience!",{duration:6000,icon:'😀'})
+      navigate('/');
+    } catch (error) {
+      const msg = error.response?.data?.msg || error.response?.data?.message || 'Registration failed';
+      toast.error(msg);
+      console.error('Error during registration:', error.response?.data || error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -28,9 +58,7 @@ const Register = () => {
       <div className="relative z-10 flex w-[90%] md:w-[1000px] h-[500px] bg-white rounded-3xl overflow-hidden shadow-xl">
         {/* Left Form Section */}
         <div className="w-full md:w-1/2 p-8 flex flex-col justify-start items-center pt-14">
-          <h2 className="text-3xl font-bold text-gray-800 mb-4">
-            Get Started Now
-          </h2>
+          <h2 className="text-3xl font-bold text-gray-800 mb-4">Get Started Now</h2>
 
           <form className="space-y-4 w-[350px]" onSubmit={handleSubmit}>
             <div>
@@ -43,6 +71,7 @@ const Register = () => {
                 onChange={handleChange}
                 className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-purple-400"
                 required
+                disabled={loading}
               />
             </div>
 
@@ -56,6 +85,7 @@ const Register = () => {
                 onChange={handleChange}
                 className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-purple-400"
                 required
+                disabled={loading}
               />
             </div>
 
@@ -69,24 +99,23 @@ const Register = () => {
                 onChange={handleChange}
                 className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-purple-400"
                 required
+                disabled={loading}
               />
             </div>
 
             <button
               type="submit"
               style={{ backgroundColor: '#431363' }}
-              className="w-full text-white py-2 rounded-md hover:opacity-90 transition"
+              className="w-full text-white py-2 rounded-md hover:opacity-90 transition disabled:opacity-60"
+              disabled={loading}
             >
-              Sign Up
+              {loading ? 'Signing up...' : 'Sign Up'}
             </button>
           </form>
 
           <p className="text-sm text-gray-600 mt-4 text-center">
             Already have an account?{' '}
-            <Link
-              to="/login"
-              className="text-purple-600 hover:underline"
-            >
+            <Link to="/login" className="text-purple-600 hover:underline">
               Login
             </Link>
           </p>

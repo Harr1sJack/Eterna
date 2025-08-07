@@ -2,7 +2,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import Hero from '../components/Hero';
-import Card from '../components/Card';
 
 const categories = [
   {
@@ -49,7 +48,7 @@ const categories = [
   {
     title: 'Rare Books & Manuscripts',
     description: 'First editions, signed books, and ancient texts.',
-    image: '/assets/books.JPG',
+    image: '/assets/books.jpg',
     keywords: [
       'rare books', 'signed books', 'manuscripts', 'first edition', 'literature', 'ancient texts',
       'collector books', 'handwritten notes', 'scrolls', 'old dictionaries', 'archives', 'poetry books',
@@ -79,7 +78,7 @@ const categories = [
   {
     title: 'Toys & Games',
     description: 'Collector toys, trading cards, and LEGO sets.',
-    image: '/assets/toys.JPG',
+    image: '/assets/toys.jpg',
     keywords: [
       'toys', 'action figures', 'lego', 'trading cards', 'board games', 'puzzles', 'collector toys', 'vintage toys',
       'toy cars', 'playsets', 'classic toys', 'game figurines', 'dolls', 'limited edition toys', 'miniatures',
@@ -89,7 +88,7 @@ const categories = [
   {
     title: 'Music & Instruments',
     description: 'Guitars, signed vinyls, and music gear.',
-    image: '/assets/music.JPG',
+    image: '/assets/music.jpg',
     keywords: [
       'guitars', 'vinyls', 'signed albums', 'music gear', 'instruments', 'keyboards', 'amplifiers', 'drums',
       'microphones', 'rare music', 'music memorabilia', 'vintage instruments', 'record players', 'speakers',
@@ -129,7 +128,7 @@ const categories = [
   {
     title: 'Historical & Cultural Artifacts',
     description: 'Tribal art, idols, relics, and textiles.',
-    image: '/assets/culture.JPG',
+    image: '/assets/culture.jpg',
     keywords: [
       'tribal art', 'cultural artifacts', 'ancient idols', 'heritage relics', 'traditional clothing',
       'textiles', 'ethnic crafts', 'ritual objects', 'historic decor', 'tribal sculptures', 'folklore items',

@@ -15,16 +15,6 @@ const Footer = () => {
 
         {/* Logo and copyright */}
         <div className="flex items-center gap-2 mt-4">
-          <svg
-            width="28"
-            height="28"
-            viewBox="0 0 24 24"
-            fill="currentColor"
-            xmlns="http://www.w3.org/2000/svg"
-            className="fill-current"
-          >
-            <path d="M22.672 15.226l-2.432.811... (shortened for brevity) ..." />
-          </svg>
           <p className="text-sm">
             Copyright © {new Date().getFullYear()} — All rights reserved
           </p>
