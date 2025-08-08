@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 
-const { Schema, model } = mongoose;
+const { Schema, model, models } = mongoose;
 
 const reviewSchema = new Schema(
   {
@@ -12,4 +12,4 @@ const reviewSchema = new Schema(
   }
 );
 
-export default model('Review', reviewSchema);
+export default models.reviewSchema || model('Review', reviewSchema);

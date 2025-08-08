@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 
-const { Schema, model } = mongoose;
+const { Schema, model, models } = mongoose;
 
 const productSchema = new Schema(
   {
@@ -15,4 +15,4 @@ const productSchema = new Schema(
   { timestamps: true }
 );
 
-export default model('Product', productSchema);
+export default models.productSchema || model('Product', productSchema);

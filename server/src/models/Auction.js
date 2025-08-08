@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 
-const { Schema, model } = mongoose;
+const { Schema, model, models } = mongoose;
 
 const bidSchema = new Schema(
   {
@@ -24,4 +24,4 @@ const auctionSchema = new Schema(
   { timestamps: true }
 );
 
-export default model('Auction', auctionSchema);
+export default models.auctionSchema || model('Auction', auctionSchema);

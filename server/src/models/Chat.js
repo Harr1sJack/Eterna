@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-const { Schema, model } = mongoose;
+const { Schema, model, models } = mongoose;
 
 const messageSchema = new Schema(
   {
@@ -25,4 +25,4 @@ const chatSchema = new Schema(
   { timestamps: true }
 );
 
-export default model('Chat', chatSchema);
+export default models.chatSchema || model('Chat', chatSchema);

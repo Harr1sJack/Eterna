@@ -46,31 +46,40 @@ const Profile = () => {
 
     fetchProfile();
   }, [token]);
-
+  
   const handlePicChange = (e) => {
     const file = e.target.files[0];
-    if (file) {
-      const imageUrl = URL.createObjectURL(file);
-      setProfilePic(imageUrl);
+    if (!file) return;
+  
+    const maxSize = 1 * 1024 * 1024;
+    if (file.size > maxSize) {
+      toast.error("Image size should be less than 1MB");
+      return;
     }
+  
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setProfilePic(reader.result);
+    };
+    reader.readAsDataURL(file);
   };
-
+  
   const handleSave = async () => {
     try {
       const payload = { name, dob, gender, bio, vehicleType, profilePic };
-
+  
       await axios.put(`${import.meta.env.VITE_SERVER_URL}/api/profile`, payload, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-
+  
       toast.success("Profile updated!");
     } catch (err) {
       console.error(err);
       toast.error("Error saving profile");
     }
-  };
+  };  
 
   const handleLogout = () => {
     logout();

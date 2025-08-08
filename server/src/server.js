@@ -6,6 +6,7 @@ import http from 'http';
 import authRoutes from './routes/auth.js';
 import chatRoutes from './routes/chat.js';
 import profileRoutes from './routes/profile.js';
+import categoryRoutes from "./routes/category.js";
 import { initSocket } from './socket.js';
 import ConnectDB from'./configs/db.js';
 
@@ -18,6 +19,8 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/chats', chatRoutes);
 app.use('/api/profile', profileRoutes);
+app.use("/api/categories", categoryRoutes);
+
 const httpServer = http.createServer(app);
 
 ConnectDB().then(()=>{
