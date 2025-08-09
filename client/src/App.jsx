@@ -9,6 +9,7 @@ import Register from './pages/Register';
 import Profile from './pages/Profile'
 import About from './pages/About';
 import Explore from './pages/Explore';
+import PostProduct from './pages/PostProduct';
 
 
 const App = () => {
@@ -17,7 +18,11 @@ const App = () => {
     <div data-theme='bumblebee'>
       <Toaster
         toastOptions={{
-          duration: 5000, // 5 seconds
+          duration: 5000, 
+          style:{
+            background:'#6c2d96',
+            color:'white'
+          }
         }}
       />
       <NavBar />
@@ -28,6 +33,7 @@ const App = () => {
         <Route path="/profile" element={<Profile />} />
         <Route path="/about" element={<About />} />
         <Route path="/explore" element={<Explore />} />
+        <Route path='/post-product' element={<PostProduct />} />
       </Routes>
       <Footer />
     </div>

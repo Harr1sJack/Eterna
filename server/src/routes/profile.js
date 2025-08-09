@@ -1,6 +1,6 @@
-import { Router } from 'express';
-import auth from '../middlewares/auth.js'; 
+import {Router} from 'express';
 import { getProfile, updateProfile } from '../controllers/profileController.js';
+import auth from '../middlewares/auth.js';
 
 const router = Router();
 

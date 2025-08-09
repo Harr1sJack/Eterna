@@ -34,11 +34,17 @@ const NavBar = () => {
           Authorization: `Bearer ${token}`,
         },
       });
-      setProfilePic(res.data.profilePic || null);
+  
+      if (res.data.profilePic) {
+        setProfilePic(res.data.profilePic);
+      } else {
+        setProfilePic(null);
+      }
     } catch (err) {
       console.error("Error fetching profile picture", err);
     }
   };
+  
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -131,7 +137,7 @@ const NavBar = () => {
             to="/login"
             onMouseEnter={() => setHover({ ...hover, login: true })}
             onMouseLeave={() => setHover({ ...hover, login: false })}
-            className="btn btn-ghost text-lg font-sans w-28 relative overflow-hidden py-1"
+            className="btn btn-ghost text-lg font-sans w-36 relative overflow-hidden py-1"
           >
             <span
               className={`transition-all duration-300 ${

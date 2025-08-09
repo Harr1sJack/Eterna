@@ -12,7 +12,7 @@ const buildToken = (user) =>
 
 export const signup = async (req, res) => {
   try {
-    const { name, email, password, profilePic } = req.body;
+    const { name, email, password } = req.body;
 
     if (!name || !email || !password)
       return res.status(400).json({ msg: 'Missing required fields' });
@@ -25,8 +25,7 @@ export const signup = async (req, res) => {
     const newUser = await User.create({
       name,
       email,
-      password: hash,
-      profilePic,
+      password: hash
     });
     return res
       .status(201)

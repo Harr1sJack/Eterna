@@ -1,5 +1,6 @@
 import User from '../models/User.js';
 
+// Get profile
 export const getProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select('-password');
@@ -7,14 +8,17 @@ export const getProfile = async (req, res) => {
 
     res.json(user);
   } catch (err) {
+    console.error('Error fetching profile:', err);
     res.status(500).json({ msg: 'Server error' });
   }
 };
 
+// Update profile (Base64 image stored directly in MongoDB)
 export const updateProfile = async (req, res) => {
   try {
     const updates = { ...req.body };
 
+    // Validate image format if provided
     if (updates.profilePic && !/^data:image\/(png|jpg|jpeg);base64,/.test(updates.profilePic)) {
       return res.status(400).json({ msg: 'Invalid image format. Must be Base64.' });
     }
@@ -29,7 +33,7 @@ export const updateProfile = async (req, res) => {
 
     res.json(user);
   } catch (err) {
-    console.error("Error updating profile:", err);
+    console.error('Error updating profile:', err);
     res.status(500).json({ msg: 'Error updating profile' });
   }
 };

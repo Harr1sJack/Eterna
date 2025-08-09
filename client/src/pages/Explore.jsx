@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useLocation } from 'react-router-dom';
+import ProductCard from '../components/ProductCard';
 
 const categories = [
   {
@@ -469,6 +470,7 @@ const categories = [
   },
 ];
 
+
 const Explore = () => {
   const [filters, setFilters] = useState({});
   const [sorts, setSorts] = useState({});
@@ -481,10 +483,6 @@ const Explore = () => {
     ? categories.find(cat => cat.title === initialCategory)?.id || 'all'
     : 'all';
   const [selectedCategory, setSelectedCategory] = useState(categoryIdFromTitle);
-
-  const handleToggle = (id) => {
-    setOpen((prev) => ({ ...prev, [id]: !prev[id] }));
-  };
 
   return (
     <div className="min-h-screen relative">
@@ -502,7 +500,18 @@ const Explore = () => {
       ></div>
       <div className="relative mt-0 pt-24 sm:pt-28 px-4 sm:px-10 lg:px-28 text-[#431363] z-10">
         {/* Centered Title */}
-        <h1 className="text-2xl sm:text-3xl font-bold text-center w-full mb-2" style={{background: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(2px)', borderRadius: '1rem', display: 'inline-block', padding: '0.5rem 2rem'}}>Explore Products</h1>
+        <h1
+          className="text-2xl sm:text-3xl font-bold text-center w-full mb-2"
+          style={{
+            background: 'rgba(255,255,255,0.7)',
+            backdropFilter: 'blur(2px)',
+            borderRadius: '1rem',
+            display: 'inline-block',
+            padding: '0.5rem 2rem',
+          }}
+        >
+          Explore Products
+        </h1>
         {/* Search/sort row, right-aligned */}
         <div className="flex justify-end w-full mb-8 sm:mb-10">
           <div className="flex gap-4 items-center w-full sm:w-auto max-w-xl">
@@ -525,10 +534,11 @@ const Explore = () => {
           </div>
         </div>
         {/* Category Tabs Row */}
-        {/* Category Filter Bar (buttons) restored */}
         <div className="max-w-7xl mx-auto mb-8 flex flex-wrap gap-2 items-center justify-center">
           <button
-            className={`px-4 py-1 rounded-full font-semibold border border-[#e2e4ed] bg-white text-[#431363] hover:bg-[#ece7fa] transition ${selectedCategory === 'all' ? 'bg-[#ece7fa]' : ''}`}
+            className={`px-4 py-1 rounded-full font-semibold border border-[#e2e4ed] bg-white text-[#431363] hover:bg-[#ece7fa] transition ${
+              selectedCategory === 'all' ? 'bg-[#ece7fa]' : ''
+            }`}
             onClick={() => setSelectedCategory('all')}
           >
             All
@@ -536,27 +546,35 @@ const Explore = () => {
           {categories.map(cat => (
             <button
               key={cat.id}
-              className={`px-4 py-1 rounded-full font-semibold border border-[#e2e4ed] bg-white text-[#431363] hover:bg-[#ece7fa] transition ${selectedCategory === cat.id ? 'bg-[#ece7fa]' : ''}`}
+              className={`px-4 py-1 rounded-full font-semibold border border-[#e2e4ed] bg-white text-[#431363] hover:bg-[#ece7fa] transition ${
+                selectedCategory === cat.id ? 'bg-[#ece7fa]' : ''
+              }`}
               onClick={() => setSelectedCategory(cat.id)}
             >
-              <span className="mr-1">{cat.icon}</span>{cat.title}
+              <span className="mr-1">{cat.icon}</span>
+              {cat.title}
             </button>
           ))}
         </div>
         <div className="max-w-7xl mx-auto">
           {/* Flatten all products for display */}
           {(() => {
-            let allProducts = categories.flatMap(cat => (cat.products || []).map(p => ({ ...p, category: cat.title, icon: cat.icon })));
+            let allProducts = categories.flatMap(cat =>
+              (cat.products || []).map(p => ({ ...p, category: cat.title, icon: cat.icon }))
+            );
             // Filter by selected category
             if (selectedCategory !== 'all') {
-              allProducts = allProducts.filter(p => p.category === categories.find(cat => cat.id === selectedCategory)?.title);
+              allProducts = allProducts.filter(
+                p => p.category === categories.find(cat => cat.id === selectedCategory)?.title
+              );
             }
             const search = (filters.global || '').toLowerCase();
             if (search) {
-              allProducts = allProducts.filter(p =>
-                p.title.toLowerCase().includes(search) ||
-                p.description.toLowerCase().includes(search) ||
-                p.tags.some(tag => tag.toLowerCase().includes(search))
+              allProducts = allProducts.filter(
+                p =>
+                  p.title.toLowerCase().includes(search) ||
+                  p.description.toLowerCase().includes(search) ||
+                  p.tags.some(tag => tag.toLowerCase().includes(search))
               );
             }
             if (sorts.global === 'price-asc') {
@@ -569,21 +587,7 @@ const Explore = () => {
                 {allProducts.length === 0 ? (
                   <div className="text-gray-400 italic">No products found.</div>
                 ) : (
-                  allProducts.map(product => (
-                    <div key={product.id} className="bg-white rounded-xl shadow-lg py-2 px-3 flex gap-2 items-center border border-[#e2e4ed] min-w-[180px] w-full">
-                      <img src={product.image} alt={product.title} className="w-32 h-24 object-cover rounded-lg border" loading="lazy" />
-                      <div className="flex-1">
-                        <div className="font-bold text-base mb-1">{product.title}</div>
-                        <div className="text-xs text-gray-500 mb-2">{product.description}</div>
-                        <div className="text-[#431363] font-bold text-sm mb-1">${product.price}</div>
-                        <div className="flex flex-wrap gap-1 mt-1">
-                          {product.tags.map(tag => (
-                            <span key={tag} className="bg-[#ece7fa] text-[#431363] rounded px-2 py-0.5 text-xs">{tag}</span>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  ))
+                  allProducts.map(product => <ProductCard key={product.id} product={product} />)
                 )}
               </div>
             );

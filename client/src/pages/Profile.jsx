@@ -9,14 +9,17 @@ const Profile = () => {
   const navigate = useNavigate();
 
   const [profilePic, setProfilePic] = useState('/profile/default.png');
+  const [selectedFileBase64, setSelectedFileBase64] = useState('');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [dob, setDob] = useState('');
   const [gender, setGender] = useState('');
   const [bio, setBio] = useState('');
-  const [vehicleType, setVehicleType] = useState('');
 
-  // Fetch user details on mount
+  // New state to hold user's posted products
+  const [userProducts, setUserProducts] = useState([]);
+  const [loadingProducts, setLoadingProducts] = useState(false);
+
   useEffect(() => {
     if (!token) return;
 
@@ -29,57 +32,86 @@ const Profile = () => {
         });
 
         const data = res.data;
-        // Set defaults
         setName(data.name || '');
         setEmail(data.email || '');
         setDob(data.dob ? data.dob.slice(0, 10) : '');
         setGender(data.gender || '');
         setBio(data.bio || '');
-        setVehicleType(data.vehicleType || '');
-        setProfilePic(data.profilePic || '/profile/default.png');
-
+        setProfilePic(data.profilePic || '/profile/default.png'); // Base64 string or fallback
       } catch (err) {
         console.error(err);
-        toast.error("Failed to load profile");
+        toast.error('Failed to load profile');
       }
     };
 
     fetchProfile();
   }, [token]);
-  
+
+  // Fetch user's posted products
+  useEffect(() => {
+    if (!token) return;
+
+    const fetchUserProducts = async () => {
+      setLoadingProducts(true);
+      try {
+        const res = await axios.get(
+          `${import.meta.env.VITE_SERVER_URL}/api/products/myproducts`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        // API returns { products: [...] }
+        setUserProducts(res.data.products || []);
+      } catch (err) {
+        console.error('Error fetching user products', err);
+        toast.error('Failed to load your products');
+      } finally {
+        setLoadingProducts(false);
+      }
+    };
+
+    fetchUserProducts();
+  }, [token]);
+
   const handlePicChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-  
-    const maxSize = 1 * 1024 * 1024;
+
+    const maxSize = 2 * 1024 * 1024; // 2MB
     if (file.size > maxSize) {
-      toast.error("Image size should be less than 1MB");
+      toast.error('Image size should be less than 2MB');
       return;
     }
-  
+
     const reader = new FileReader();
     reader.onloadend = () => {
-      setProfilePic(reader.result);
+      setProfilePic(reader.result); // For preview
+      setSelectedFileBase64(reader.result); // Store Base64
     };
-    reader.readAsDataURL(file);
+    reader.readAsDataURL(file); // Convert to Base64
   };
-  
+
   const handleSave = async () => {
     try {
-      const payload = { name, dob, gender, bio, vehicleType, profilePic };
-  
+      const payload = {
+        name,
+        dob,
+        gender,
+        bio,
+        profilePic: selectedFileBase64 || profilePic,
+      };
       await axios.put(`${import.meta.env.VITE_SERVER_URL}/api/profile`, payload, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
-  
-      toast.success("Profile updated!");
+
+      toast.success('Profile updated!');
     } catch (err) {
       console.error(err);
-      toast.error("Error saving profile");
+      toast.error('Error saving profile');
     }
-  };  
+  };
 
   const handleLogout = () => {
     logout();
@@ -87,17 +119,15 @@ const Profile = () => {
   };
 
   return (
-    <div className="relative min-h-screen pt-24 py-10 px-4 flex justify-center overflow-hidden">
-
-      {/* Background Image with Blur */}
+    <div className="relative min-h-screen pt-24 py-10 px-4 flex flex-col items-center overflow-hidden">
       <div
         className="absolute inset-0 bg-cover bg-center filter blur-md z-0"
         style={{ backgroundImage: "url('/assets/loginbk1.jpg')" }}
       ></div>
       <div className="absolute inset-0 bg-black/5 z-0"></div>
 
-      {/* Main Content */}
       <div className="relative z-10 bg-white shadow-lg rounded-xl p-8 w-full max-w-3xl">
+        {/* Profile header and form */}
         <div className="flex items-center space-x-6 mb-8">
           <div className="relative">
             <img
@@ -169,6 +199,7 @@ const Profile = () => {
                 <option value="Male">Male</option>
                 <option value="Female">Female</option>
                 <option value="Other">Other</option>
+                <option value="Prefer not to say">Prefer not to say</option>
               </select>
             </div>
           </div>
@@ -201,6 +232,58 @@ const Profile = () => {
             </button>
           </div>
         </form>
+        
+        <hr className="my-10 border-t-2 border-purple-300" />
+
+        {/* User's posted products */}
+        <div className="mt-10">
+          <h3 className="text-xl font-semibold text-[#431363] mb-4">Your Posted Products</h3>
+
+          {loadingProducts ? (
+            <p>Loading your products...</p>
+          ) : userProducts.length === 0 ? (
+            <p className="text-gray-500 italic">You have not posted any products yet.</p>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {userProducts.map((product) => (
+                <div
+                  key={product._id}
+                  className="bg-white rounded-lg shadow-md border border-[#e2e4ed] p-4 flex gap-4"
+                >
+                  <img
+                    src={product.images[0] || '/assets/default-product.jpg'}
+                    alt={product.title}
+                    className="w-24 h-20 object-cover rounded"
+                  />
+                  <div className="flex flex-col justify-between">
+                    <div>
+                      <h4 className="font-bold text-lg text-[#431363]">{product.title}</h4>
+                      <p className="text-gray-600 text-sm line-clamp-2">{product.description}</p>
+                      <p className="mt-1 text-[#431363] font-semibold">${product.price}</p>
+                    </div>
+                    <p className="text-xs mt-2 text-gray-500">
+                      Status:{' '}
+                      <span className={product.isApproved ? 'text-green-600' : 'text-yellow-600'}>
+                        {product.isApproved ? 'Approved' : 'Pending Approval'}
+                      </span>
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Post Product button */}
+        <div className="mt-10">
+          <button
+            onClick={() => navigate('/post-product')}
+            className="bg-purple-700 text-white px-6 py-2 rounded-md hover:bg-purple-800 transition"
+          >
+            Post Product
+          </button>
+        </div>
+
       </div>
     </div>
   );
