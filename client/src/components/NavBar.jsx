@@ -36,15 +36,18 @@ const NavBar = () => {
       });
   
       if (res.data.profilePic) {
-        setProfilePic(res.data.profilePic);
+        // Prepend server URL if it's a relative path
+        const picPath = res.data.profilePic.startsWith('http')
+          ? res.data.profilePic
+          : `${import.meta.env.VITE_SERVER_URL}/${res.data.profilePic}`;
+        setProfilePic(picPath);
       } else {
         setProfilePic(null);
       }
     } catch (err) {
       console.error("Error fetching profile picture", err);
     }
-  };
-  
+  };  
 
   const handleLogout = () => {
     localStorage.removeItem('token');

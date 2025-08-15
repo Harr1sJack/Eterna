@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, {useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
+import axios from 'axios';
 
 const categories = [
   {
@@ -472,6 +473,39 @@ const categories = [
 
 
 const Explore = () => {
+  const [products, setProducts] = useState([]);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const res = await axios.get(`${import.meta.env.VITE_SERVER_URL}/api/products/all`);
+
+        const structuredProducts = res.data.map(p => ({
+          id: p._id,
+          title: p.title,
+          description: p.description,
+          price: p.price,
+          stock: p.stock,
+          condition: p.condition,
+          images: Array.isArray(p.images) ? p.images : [],
+          seller: {
+            id: p.sellerId?._id || null,
+            name: p.sellerId?.name || "Unknown Seller",
+          },
+          categoryId: p.categoryId,
+          isApproved: p.isApproved
+        }));
+        
+        setProducts(structuredProducts);
+
+      } catch (err) {
+        console.error('Error fetching products:', err);
+      }
+    };
+
+    fetchProducts();
+  }, []);
+
   const [filters, setFilters] = useState({});
   const [sorts, setSorts] = useState({});
   const location = useLocation();

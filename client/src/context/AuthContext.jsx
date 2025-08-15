@@ -19,7 +19,6 @@ export const AuthProvider = ({ children }) => {
         }
       } catch (err) {
         console.error('Token decode error:', err);
-        logout();
       }
     }
   }, [token]);

@@ -37,7 +37,12 @@ const Profile = () => {
         setDob(data.dob ? data.dob.slice(0, 10) : '');
         setGender(data.gender || '');
         setBio(data.bio || '');
-        setProfilePic(data.profilePic || '/profile/default.png'); // Base64 string or fallback
+        setProfilePic(
+          data.profilePic
+            ? `${import.meta.env.VITE_SERVER_URL}/${data.profilePic}`
+            : '/profile/default.png'
+        );
+      
       } catch (err) {
         console.error(err);
         toast.error('Failed to load profile');
@@ -78,39 +83,45 @@ const Profile = () => {
   const handlePicChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
+  
     const maxSize = 2 * 1024 * 1024; // 2MB
     if (file.size > maxSize) {
       toast.error('Image size should be less than 2MB');
       return;
     }
-
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setProfilePic(reader.result); // For preview
-      setSelectedFileBase64(reader.result); // Store Base64
-    };
-    reader.readAsDataURL(file); // Convert to Base64
-  };
+  
+    setSelectedFileBase64(file); // store the actual File object
+    setProfilePic(URL.createObjectURL(file)); // preview immediately
+  };  
 
   const handleSave = async () => {
-    try {
-      const payload = {
-        name,
-        dob,
-        gender,
-        bio,
-        profilePic: selectedFileBase64 || profilePic,
-      };
-      await axios.put(`${import.meta.env.VITE_SERVER_URL}/api/profile`, payload, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+    const formData = new FormData();
+    formData.append('name', name);
+    formData.append('dob', dob);
+    formData.append('gender', gender);
+    formData.append('bio', bio);
 
-      toast.success('Profile updated!');
-    } catch (err) {
-      console.error(err);
-      toast.error('Error saving profile');
+    if (selectedFileBase64) {
+      formData.append('profilePic', selectedFileBase64); // File object
     }
+
+    const res = await axios.put(
+      `${import.meta.env.VITE_SERVER_URL}/api/profile`,
+      formData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    );
+
+    // backend returns relative URL
+    if (res.data.profilePic) {
+      setProfilePic(`${import.meta.env.VITE_SERVER_URL}/${res.data.profilePic}`);
+    }
+
+    toast.success('Profile updated!');
   };
 
   const handleLogout = () => {
@@ -251,7 +262,7 @@ const Profile = () => {
                   className="bg-white rounded-lg shadow-md border border-[#e2e4ed] p-4 flex gap-4"
                 >
                   <img
-                    src={product.images[0] || '/assets/default-product.jpg'}
+                    src={`${import.meta.env.VITE_SERVER_URL}/${product.images[0]}` || '/assets/default-product.jpg'}
                     alt={product.title}
                     className="w-24 h-20 object-cover rounded"
                   />

@@ -28,19 +28,15 @@ const PostProduct = () => {
 
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
-    const maxSize = 2 * 1024 * 1024; // 2MB
+    const maxSize = 5 * 1024 * 1024; // 5MB
 
     files.forEach((file) => {
       if (file.size > maxSize) {
-        toast.error(`Image ${file.name} exceeds 2MB size limit.`);
+        toast.error(`Image ${file.name} exceeds 5MB size limit.`);
         return;
       }
 
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImages((prev) => [...prev, reader.result]);
-      };
-      reader.readAsDataURL(file);
+      setImages((prev) => [...prev, file]); 
     });
   };
 
@@ -50,7 +46,7 @@ const PostProduct = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
     if (!token) {
       toast.error('You must be logged in to post products');
       return;
@@ -63,23 +59,31 @@ const PostProduct = () => {
       toast.error('Please upload at least one image');
       return;
     }
-
+  
     setUploading(true);
     try {
-      const payload = {
-        title,
-        description,
-        categoryId, // Mongo ObjectId string
-        price: parseFloat(price),
-        images, // match backend field name
-      };
-
+      // Use FormData to send files
+      const formData = new FormData();
+      formData.append('title', title);
+      formData.append('description', description);
+      formData.append('categoryId', categoryId);
+      formData.append('price', parseFloat(price));
+  
+      images.forEach((file) => {
+        formData.append('productImage', file); // must match your backend multer field name
+      });
+  
       await axios.post(
         `${import.meta.env.VITE_SERVER_URL}/api/products`,
-        payload,
-        { headers: { Authorization: `Bearer ${token}` } }
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data',
+          },
+        }
       );
-
+  
       toast.success('Product posted successfully!');
       navigate('/profile');
     } catch (err) {
@@ -88,7 +92,7 @@ const PostProduct = () => {
     } finally {
       setUploading(false);
     }
-  };
+  };  
 
   return (
     <div className="min-h-screen pt-24 px-4 sm:px-10 lg:px-28 bg-gray-50">
@@ -184,10 +188,12 @@ const PostProduct = () => {
             Max 2MB per image. You can upload multiple images.
           </small>
           <div className="flex flex-wrap gap-4 mt-4">
-            {images.map((img, idx) => (
+            {images.map((file, idx) => {
+            const previewURL = URL.createObjectURL(file); // create a temporary preview URL
+            return (
               <div key={idx} className="relative">
                 <img
-                  src={img}
+                  src={previewURL}
                   alt={`Preview ${idx + 1}`}
                   className="w-24 h-24 object-cover rounded border"
                 />
@@ -200,7 +206,8 @@ const PostProduct = () => {
                   ×
                 </button>
               </div>
-            ))}
+            );
+          })}
           </div>
         </div>
 

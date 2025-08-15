@@ -1,5 +1,17 @@
 import Product from '../models/Product.js';  
 
+export const getAllProducts = async (req, res) => {
+  try {
+    const products = await Product.find().populate('sellerId', 'name');
+    console.log(products)
+    res.status(201).json(products);
+  } catch (error) {
+    console.error('Error fetching all products:', error);
+    res.status(500).json({ message: 'Server Error' });
+  }
+};
+
+
 export const getProducts = async (req, res) => {
   try {
     const { category, search, sort, page = 1, limit = 20 } = req.query;
@@ -7,7 +19,7 @@ export const getProducts = async (req, res) => {
     const filter = { isApproved: true };
 
     if (category && category !== 'all') {
-      filter.categoryId = category; // fixed to match your schema
+      filter.categoryId = category;
     }
 
     if (search) {
@@ -66,26 +78,31 @@ export const getMyProducts = async (req, res) => {
 
 export const createProduct = async (req, res) => {
   try {
-    const { title, description, categoryId, price, images } = req.body;
+    const { title, description, categoryId, price } = req.body;
     const sellerId = req.user.id;
 
-    if (!title || !description || !price || !sellerId || !categoryId || !images || images.length === 0) {
+    if (!title || !description || !price || !categoryId) {
       return res.status(400).json({ message: 'Missing required fields' });
     }
 
-    const isValidBase64 = (str) => /^data:image\/[a-zA-Z]+;base64,/.test(str);
-    if (!images.every(isValidBase64)) {
-      return res.status(400).json({ message: 'One or more images are not valid Base64 strings' });
+    // multer puts uploaded files in req.files
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({ message: 'At least one product image is required' });
     }
+
+    // Store relative paths so they can be accessed via /uploads/product/...
+    const imagePaths = req.files.map(file =>
+      file.path.replace(/\\/g, '/').replace(/^.*uploads\//, 'uploads/')
+    );
 
     const product = new Product({
       title,
       description,
       categoryId,
       price,
-      images, 
+      images: imagePaths,
       sellerId,
-      isApproved: false,
+      isApproved: false
     });
 
     await product.save();

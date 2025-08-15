@@ -25,7 +25,7 @@ const CategoryCard = ({ category, matched, shouldScroll }) => {
       <div className="relative">
         <figure className="aspect-[4/3] relative overflow-hidden">
           <img
-            src={category.image}
+            src={category.imageUrl} 
             alt={category.title}
             loading="lazy"
             className="w-full h-full object-cover rounded-t-[0.75rem] rounded-b-none"

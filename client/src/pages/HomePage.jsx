@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import axios from 'axios';
 import Hero from '../components/Hero';
 import CategoryCard from '../components/CategoryCard';
@@ -13,7 +12,11 @@ const HomePage = () => {
     const fetchCategories = async () => {
       try {
         const res = await axios.get(`${import.meta.env.VITE_SERVER_URL}/api/categories`);
-        setCategories(res.data || []);
+        const updatedCategories = (res.data || []).map(cat => ({
+          ...cat,
+          imageUrl: `${import.meta.env.VITE_SERVER_URL}/${cat.image}`
+        }));
+        setCategories(updatedCategories);
       } catch (err) {
         console.error("Error fetching categories:", err);
       } finally {
@@ -45,7 +48,6 @@ const HomePage = () => {
     <div className="bg-[#f5f5f7] text-[#431363]">
       <Hero />
 
-      {/* Centered Title */}
       <div className="px-4 sm:px-10 lg:px-28 mt-10">
         <h2
           className="text-2xl sm:text-3xl md:text-4xl font-bold text-center w-full mb-2"
@@ -58,6 +60,7 @@ const HomePage = () => {
         >
           Explore&nbsp;By&nbsp;Category
         </h2>
+
         {/* Search bar */}
         <div className="flex justify-end w-full mb-8 sm:mb-10">
           <div className="relative w-full sm:w-80">
@@ -89,7 +92,6 @@ const HomePage = () => {
       <div className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-5 gap-6 sm:gap-8 lg:gap-10 px-4 sm:px-10 lg:px-28 pb-12">
         {categories.map((c, i) => {
           const matched = isMatch(c.title, c.description, c.keywords || []);
-
           const shouldScroll =
             matched &&
             i === categories.findIndex(cat => searchTerm.length > 0 && isMatch(cat.title, cat.description));
