@@ -38,16 +38,36 @@ const HomePage = () => {
     return (
       <div className="flex justify-center items-center h-screen text-[#431363] text-3xl">
         Loading categories...
-        <br/>
+        <br />
         <span className="loading loading-spinner text-error loading-xl w-12 h-12"></span>
       </div>
     );
   }
 
   return (
-    <div className="bg-[#f5f5f7] text-[#431363]">
-      <Hero />
+    <div className="relative min-h-screen text-[#431363] overflow-hidden">
+      {/* Full-page blurred background */}
+      <div className="absolute inset-0 -z-10">
+        <img
+          src="/assets/loginbk1.jpg"
+          alt="Home background"
+          className="w-full h-full object-cover object-center blur-lg brightness-100 opacity-80"
+        />
+      </div>
 
+      {/* Hero with its own background */}
+      <div className="relative">
+        <div className="absolute inset-0 -z-10">
+          <img
+            src="/assets/hero-bg.jpg"   // 👉 put your hero-specific background here
+            alt="Hero background"
+            className="w-full h-full object-cover object-center opacity-90"
+          />
+        </div>
+        <Hero />
+      </div>
+
+      {/* Categories section */}
       <div className="px-4 sm:px-10 lg:px-28 mt-10">
         <h2
           className="text-2xl sm:text-3xl md:text-4xl font-bold text-center w-full mb-2"
@@ -90,21 +110,30 @@ const HomePage = () => {
 
       {/* Category Grid */}
       <div className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-5 gap-6 sm:gap-8 lg:gap-10 px-4 sm:px-10 lg:px-28 pb-12">
-        {categories.map((c, i) => {
-          const matched = isMatch(c.title, c.description, c.keywords || []);
-          const shouldScroll =
-            matched &&
-            i === categories.findIndex(cat => searchTerm.length > 0 && isMatch(cat.title, cat.description));
-
-          return (
+        {(() => {
+          const visibleCategories = searchTerm.trim().length > 0
+            ? categories.filter(c => isMatch(c.title, c.description, c.keywords || []))
+            : categories;
+          if (visibleCategories.length === 0) {
+            return (
+              <div className="col-span-3 lg:col-span-5 flex flex-col items-center justify-center py-12">
+                <img
+                  src="/assets/NotFound.jpg"
+                  alt="No match found"
+                  className="w-40 h-40 sm:w-56 sm:h-56 lg:w-72 lg:h-72 object-contain mb-4 opacity-80 drop-shadow-lg transition-all duration-300"
+                />
+              </div>
+            );
+          }
+          return visibleCategories.map((c, i) => (
             <CategoryCard
               key={c._id || i}
               category={c}
-              matched={matched}
-              shouldScroll={shouldScroll}
+              matched={isMatch(c.title, c.description, c.keywords || [])}
+              shouldScroll={false}
             />
-          );
-        })}
+          ));
+        })()}
       </div>
     </div>
   );

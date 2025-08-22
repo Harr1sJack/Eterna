@@ -17,10 +17,9 @@ const CategoryCard = ({ category, matched, shouldScroll }) => {
       to={`/explore?category=${encodeURIComponent(category.title)}`}
       aria-label={`Browse ${category.title}`}
       ref={ref}
-      className={`card bg-[#ffffff] w-full max-w-xs sm:max-w-sm lg:max-w-none mx-auto
-                  shadow-md transition duration-300 ease-out hover:shadow-2xl hover:-translate-y-2 hover:scale-[1.04]
-                  focus:outline-none focus:ring focus:ring-primary
-                  ${matched ? 'ring-2 ring-green-500 scale-[1.02] border border-green-400' : ''}`}
+  className={`card bg-[#ffffff] w-full max-w-xs sm:max-w-sm lg:max-w-none mx-auto
+      shadow-md transition duration-300 ease-out hover:shadow-2xl hover:-translate-y-2 hover:scale-[1.04]
+      focus:outline-none focus:ring focus:ring-primary`}
     >
       <div className="relative">
         <figure className="aspect-[4/3] relative overflow-hidden">
