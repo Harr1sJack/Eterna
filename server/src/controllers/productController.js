@@ -45,49 +45,17 @@ export const getApprovedProducts = async (req, res) => {
   }
 };
 
-export const getProducts = async (req, res) => {
+export const getPendingProducts = async (req, res) => {
   try {
-    const { category, search, sort, page = 1, limit = 20 } = req.query;
-
-    const filter = { isApproved: true };
-
-    if (category && category !== 'all') {
-      filter.categoryId = category;
-    }
-
-    if (search) {
-      const searchRegex = new RegExp(search, 'i');
-      filter.$or = [
-        { title: searchRegex },
-        { description: searchRegex },
-        { tags: searchRegex }
-      ];
-    }
-
-    let sortOption = {};
-    if (sort === 'price-asc') sortOption.price = 1;
-    else if (sort === 'price-desc') sortOption.price = -1;
-    else sortOption.createdAt = -1;
-
-    const skip = (page - 1) * limit;
-
-    const products = await Product.find(filter)
-      .sort(sortOption)
-      .skip(skip)
-      .limit(Number(limit))
+    const products = await Product.find({ isApproved: false })
       .populate('sellerId', 'name profilePic')
+      .populate('categoryId', 'title')
+      .sort({ createdAt: -1 })
       .exec();
 
-    const total = await Product.countDocuments(filter);
-
-    res.json({
-      products,
-      total,
-      page: Number(page),
-      pageSize: Number(limit),
-    });
+    res.json(products);
   } catch (error) {
-    console.error('Error fetching products:', error);
+    console.error('Error fetching approved products:', error);
     res.status(500).json({ message: 'Server Error' });
   }
 };

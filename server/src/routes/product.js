@@ -1,6 +1,6 @@
 import express from 'express';
 import {
-  getProducts,
+  getPendingProducts,
   createProduct,
   getMyProducts,
   getAllProducts,
@@ -14,7 +14,7 @@ const router = express.Router();
 
 router.get('/all', getAllProducts);
 router.get('/approved',getApprovedProducts);
-router.get('/', getProducts);
+router.get('/pending', getPendingProducts);
 router.get('/myproducts', auth, getMyProducts);
 router.get('/:id', getProductById);
 

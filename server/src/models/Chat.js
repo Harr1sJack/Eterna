@@ -15,7 +15,7 @@ const chatSchema = new Schema(
     participants: {
       type: [Schema.Types.ObjectId],
       ref:  'User',
-      validate: v => v.length === 2,   // exactly 2 users
+      validate: v => v.length === 2,
       required: true
     },
     productId:   { type: Schema.Types.ObjectId, ref: 'Product' },
