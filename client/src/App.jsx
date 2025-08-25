@@ -10,6 +10,8 @@ import Profile from './pages/Profile'
 import About from './pages/About';
 import Explore from './pages/Explore';
 import PostProduct from './pages/PostProduct';
+import Admin from './pages/Admin';
+import ProductDetails from './pages/ProductDetails';
 
 
 const App = () => {
@@ -28,12 +30,14 @@ const App = () => {
       <NavBar />
       <Routes>
         <Route path='/' element={<HomePage />} />
+        <Route path="/admin" element={<Admin/>}/>
         <Route path='/login' element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/about" element={<About />} />
         <Route path="/explore" element={<Explore />} />
         <Route path='/post-product' element={<PostProduct />} />
+        <Route path="/products/:id" element={<ProductDetails />} />
       </Routes>
       <Footer />
     </div>

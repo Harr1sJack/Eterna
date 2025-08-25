@@ -10,9 +10,6 @@ export default function auth(req, res, next) {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.user = decoded;
-    console.log("Header :", header);
-    console.log("Authenticated user:", req.user);
-
     return next();
   } catch (err) {
     return res.status(401).json({ msg: 'Token invalid' });

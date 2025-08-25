@@ -11,6 +11,39 @@ export const getAllProducts = async (req, res) => {
   }
 };
 
+export const getProductById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const product = await Product.findById(id)
+      .populate('sellerId', 'name profilePic')
+      .populate('categoryId', 'title');
+
+    if (!product) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+
+    res.json(product);
+  } catch (error) {
+    console.error('Error fetching product by ID:', error);
+    res.status(500).json({ message: 'Server Error' });
+  }
+};
+
+export const getApprovedProducts = async (req, res) => {
+  try {
+    const products = await Product.find({ isApproved: true })
+      .populate('sellerId', 'name profilePic')
+      .populate('categoryId', 'title')
+      .sort({ createdAt: -1 })
+      .exec();
+
+    res.json(products);
+  } catch (error) {
+    console.error('Error fetching approved products:', error);
+    res.status(500).json({ message: 'Server Error' });
+  }
+};
 
 export const getProducts = async (req, res) => {
   try {

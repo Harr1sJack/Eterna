@@ -135,6 +135,7 @@ const HomePage = () => {
           ));
         })()}
       </div>
+      <div className="mt-12"></div>
     </div>
   );
 };

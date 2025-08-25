@@ -13,6 +13,7 @@ import categoryRoutes from "./routes/category.js";
 import productRoutes from "./routes/product.js";
 import { initSocket } from './socket.js';
 import ConnectDB from './configs/db.js';
+import adminRoutes from "./routes/admin.js";
 
 const PORT = process.env.PORT || 5000;
 
@@ -29,6 +30,7 @@ const __dirname = path.dirname(__filename);
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // Routes
+app.use("/api/products", adminRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/chats', chatRoutes);
 app.use('/api/profile', profileRoutes);
