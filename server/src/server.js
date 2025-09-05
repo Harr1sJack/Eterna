@@ -32,7 +32,7 @@ app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 // Routes
 app.use("/api/products", adminRoutes);
 app.use('/api/auth', authRoutes);
-app.use('/api/chats', chatRoutes);
+app.use("/api/chats", chatRoutes);
 app.use('/api/profile', profileRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/products", productRoutes);

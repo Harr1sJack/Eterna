@@ -1,6 +1,7 @@
 import React from 'react'
-import {Routes, Route} from 'react-router-dom'
+import { Routes, Route } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast';
+
 import HomePage from './pages/HomePage'
 import NavBar from './components/NavBar'
 import Footer from './components/Footer'
@@ -12,25 +13,26 @@ import Explore from './pages/Explore';
 import PostProduct from './pages/PostProduct';
 import Admin from './pages/Admin';
 import ProductDetails from './pages/ProductDetails';
-
+import ChatPage from './pages/ChatPage';
+import ChatLayout from './pages/ChatLayout';
 
 const App = () => {
-  
+
   return (
     <div data-theme='bumblebee'>
       <Toaster
         toastOptions={{
-          duration: 5000, 
-          style:{
-            background:'#6c2d96',
-            color:'white'
+          duration: 5000,
+          style: {
+            background: '#6c2d96',
+            color: 'white'
           }
         }}
       />
       <NavBar />
       <Routes>
         <Route path='/' element={<HomePage />} />
-        <Route path="/admin" element={<Admin/>}/>
+        <Route path="/admin" element={<Admin />} />
         <Route path='/login' element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/profile" element={<Profile />} />
@@ -38,6 +40,8 @@ const App = () => {
         <Route path="/explore" element={<Explore />} />
         <Route path='/post-product' element={<PostProduct />} />
         <Route path="/products/:id" element={<ProductDetails />} />
+        <Route path="/chat/:sellerId" element={<ChatPage />} />
+        <Route path="/chat" element={<ChatLayout />} />
       </Routes>
       <Footer />
     </div>

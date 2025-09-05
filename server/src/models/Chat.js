@@ -1,28 +1,26 @@
-import mongoose from 'mongoose';
-const { Schema, model, models } = mongoose;
+import mongoose from "mongoose";
 
-const messageSchema = new Schema(
-  {
-    senderId:  { type: Schema.Types.ObjectId, ref: 'User', required: true },
-    text:      { type: String, required: true },
-    timestamp: { type: Date,   default: Date.now }
-  },
-  { _id: false }
-);
+const { Schema, model, models } = mongoose;
 
 const chatSchema = new Schema(
   {
-    participants: {
-      type: [Schema.Types.ObjectId],
-      ref:  'User',
-      validate: v => v.length === 2,
-      required: true
+    participants: [
+      { type: Schema.Types.ObjectId, ref: "User", required: true },
+    ],
+    product: {
+      type: Schema.Types.ObjectId,
+      ref: "Product",
     },
-    productId:   { type: Schema.Types.ObjectId, ref: 'Product' },
-    messages:    [messageSchema],
-    lastUpdated: { type: Date, default: Date.now }
+    messages: [
+      {
+        senderId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+        text: { type: String, required: true },
+        timestamp: { type: Date, default: Date.now },
+      },
+    ],
+    lastUpdated: { type: Date, default: Date.now },
   },
   { timestamps: true }
 );
 
-export default models.chatSchema || model('Chat', chatSchema);
+export default models.Chat || model("Chat", chatSchema);

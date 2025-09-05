@@ -1,11 +1,15 @@
-import { Router } from "express";
-import auth from "../middlewares/auth.js";
-import { createOrFetchChat, getChatHistory, getUserChats } from "../controllers/chatController.js";
+import express from "express";
+import { createChat, getUserChats, getChatById } from "../controllers/chatController.js";
 
-const router = Router();
+const router = express.Router();
 
-router.post("/", auth, createOrFetchChat);
-router.get("/:chatId", auth, getChatHistory);
-router.get("/user/:userId", auth, getUserChats);
+// create or get existing chat
+router.post("/", createChat);
+
+// get all chats of a user
+router.get("/user/:userId", getUserChats);
+
+// get specific chat with messages
+router.get("/:chatId", getChatById);
 
 export default router;

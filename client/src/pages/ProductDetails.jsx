@@ -25,6 +25,7 @@ const ProductDetails = () => {
   if (!product) return <p className="text-center py-10">Loading...</p>;
 
   const handleChat = () => {
+    console.log(product)
     navigate(`/chat/${product.sellerId._id}`);
   };
 

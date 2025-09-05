@@ -20,6 +20,13 @@ const Login = () => {
     if (loading) return;
     setLoading(true);
 
+    //admin login 
+    if(form.email == "admin@gmail.com" && form.password=="admin123")
+    {
+      navigate("/admin");
+      return;
+    }
+
     try {
       const res = await axios.post(
         `${import.meta.env.VITE_SERVER_URL}/api/auth/login`,

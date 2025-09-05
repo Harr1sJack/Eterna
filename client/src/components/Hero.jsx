@@ -1,8 +1,19 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { useAuth } from "../context/AuthContext";
 
 const Hero = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  const handleUploadClick = () => {
+    if (user) {
+      navigate("/post-product");
+    } else {
+      navigate("/login");
+    }
+  };
   return (
     <div className="bg-base-100">
       <div
@@ -47,14 +58,14 @@ const Hero = () => {
                 whileHover={{ scale: 1.05, y: -3 }}
                 transition={{ type: 'spring', stiffness: 300 }}
               >
-                <Link
-                  to="/upload"
+                <button
+                  onClick={handleUploadClick}
                   className="w-48 px-6 py-3 font-medium bg-[#431363] text-white border border-[#4f2478]
                     shadow-[3px_3px_0px_black] hover:shadow-none hover:translate-x-[3px] hover:translate-y-[3px]
                     transition-all rounded-md text-lg text-center"
                 >
                   Upload Product
-                </Link>
+                </button>
               </motion.div>
             </div>
           </div>

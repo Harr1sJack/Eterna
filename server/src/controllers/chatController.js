@@ -1,53 +1,72 @@
 import Chat from "../models/Chat.js";
 
-/**
- * Create or fetch one-to-one chat for a product
- */
-export const createOrFetchChat = async (req, res) => {
+// ✅ Create a chat between buyer & seller
+export const createChat = async (req, res) => {
   try {
-    const { buyerId, sellerId, productId } = req.body;
-
-    // Ensure array is always sorted so order doesn't matter
-    const participants = [buyerId, sellerId].sort();
-    let chat = await Chat.findOne({ participants, productId });
-
-    if (!chat) {
-      chat = await Chat.create({ participants, productId });
+    const { buyerId, sellerId } = req.body;
+    
+    if (!buyerId || !sellerId) {
+      return res.status(400).json({ error: "buyerId and sellerId required" });
     }
 
-    res.json({ chatId: chat._id });
+    // check if chat already exists
+    let chat = await Chat.findOne({
+      participants: { $all: [buyerId, sellerId] },
+    });
+
+    if (!chat) {
+      chat = await Chat.create({
+        participants: [buyerId, sellerId],
+        messages: [],
+        lastUpdated: new Date(),
+      });
+    }
+
+    // populate before sending back
+    chat = await chat.populate("participants", "id name email");
+
+    res.status(200).json(chat);
   } catch (error) {
-    res.status(500).json({ error: "Failed to create or fetch chat" });
+    console.error("❌ Create Chat Error:", error);
+    res.status(500).json({ error: "Server error" });
   }
 };
 
-/**
- * Get full message history for a chat
- */
-export const getChatHistory = async (req, res) => {
-  try {
-    const chat = await Chat.findById(req.params.chatId)
-      .populate("messages.senderId", "name profilePic");
-
-    if (!chat) return res.status(404).json({ error: "Chat not found" });
-
-    res.json(chat);
-  } catch (error) {
-    res.status(500).json({ error: "Failed to fetch chat history" });
-  }
-};
-
-/**
- * List chats for a user (sidebar)
- */
+// ✅ Get all chats of a user (with populated participants & last message)
 export const getUserChats = async (req, res) => {
   try {
-    const chats = await Chat.find({ participants: req.params.userId })
-      .populate("productId", "title images")
-      .select("participants productId lastUpdated");
+    const { userId } = req.params;
 
-    res.json(chats);
+    const chats = await Chat.find({
+      participants: userId,
+    })
+      .populate("participants", "id name email")
+      .populate("messages") // optional: populate full messages
+      .sort({ lastUpdated: -1 });
+
+    res.status(200).json(chats);
   } catch (error) {
-    res.status(500).json({ error: "Failed to fetch user chats" });
+    console.error("❌ Get User Chats Error:", error);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+// ✅ Get a single chat by ID (with participants + messages)
+export const getChatById = async (req, res) => {
+  try {
+    const { chatId } = req.params;
+
+    const chat = await Chat.findById(chatId)
+      .populate("participants", "id name email")
+      .populate("messages");
+
+    if (!chat) {
+      return res.status(404).json({ error: "Chat not found" });
+    }
+
+    res.status(200).json(chat);
+  } catch (error) {
+    console.error("❌ Get Chat Error:", error);
+    res.status(500).json({ error: "Server error" });
   }
 };
