@@ -15,64 +15,65 @@ const Hero = () => {
     }
   };
   return (
-    <div className="bg-base-100">
-      <div
-        className="hero h-[50vh]"
-        style={{
-          backgroundImage: `url(assets/bg.jpg)`,
-        }}
-      >
-        <div className="hero-overlay bg-opacity-60"></div>
-        <div className="hero-content text-neutral-content text-center mt-12">
-          <div className="max-w-screen-md">
-            {/* Animated Heading */}
-            <AnimatedHeading
-              lines={[
-                'BUY AND SELL',
-                'RARE AND EXCLUSIVE PRODUCTS',
-              ]}
-            />
+  <div className="bg-[#e8e8e8] dark:bg-gray-900">
+    <div
+      className="hero h-[50vh]"
+      style={{
+        backgroundImage: `url(assets/bg.jpg)`,
+      }}
+    >
+      <div className="hero-overlay bg-opacity-60 dark:bg-opacity-80"></div>
+      <div className="hero-content text-neutral-content text-center mt-12">
+        <div className="max-w-screen-md">
+          {/* Animated Heading */}
+          <AnimatedHeading
+            lines={[
+              'BUY AND SELL',
+              'RARE AND EXCLUSIVE PRODUCTS',
+            ]}
+          />
 
-            {/* Subtext */}
-            <p className="mb-5 text-lg font-sans">
-              Discover antiques, collectibles, and limited edition treasures—or list your own!
-            </p>
+          {/* Subtext */}
+          <p className="mb-5 text-lg font-sans text-white dark:text-purple-200">
+            Discover antiques, collectibles, and limited edition treasures—or list your own!
+          </p>
 
-            {/* Buttons */}
-            <div className="flex items-center gap-x-6 justify-center">
-              <motion.div
-                whileHover={{ scale: 1.05, y: -3 }}
-                transition={{ type: 'spring', stiffness: 300 }}
+          {/* Buttons */}
+          <div className="flex items-center gap-x-6 justify-center">
+            <motion.div
+              whileHover={{ scale: 1.05, y: -3 }}
+              transition={{ type: 'spring', stiffness: 300 }}
+            >
+              <Link
+                to="/explore"
+                className="w-48 px-6 py-3 font-medium bg-[#431363] text-white border border-[#4f2478]
+                  shadow-[3px_3px_0px_black] hover:shadow-none hover:translate-x-[3px] hover:translate-y-[3px]
+                  transition-all rounded-md text-lg text-center"
               >
-                <Link
-                  to="/explore"
-                  className="w-48 px-6 py-3 font-medium bg-[#431363] text-white border border-[#4f2478]
-                    shadow-[3px_3px_0px_black] hover:shadow-none hover:translate-x-[3px] hover:translate-y-[3px]
-                    transition-all rounded-md text-lg text-center"
-                >
-                  Explore Products
-                </Link>
-              </motion.div>
+                Explore Products
+              </Link>
+            </motion.div>
 
-              <motion.div
-                whileHover={{ scale: 1.05, y: -3 }}
-                transition={{ type: 'spring', stiffness: 300 }}
+            <motion.div
+              whileHover={{ scale: 1.05, y: -3 }}
+              transition={{ type: 'spring', stiffness: 300 }}
+            >
+              <button
+                onClick={handleUploadClick}
+                className="w-48 px-6 py-3 font-medium bg-[#431363] text-white border border-[#4f2478]
+                  shadow-[3px_3px_0px_black] hover:shadow-none hover:translate-x-[3px] hover:translate-y-[3px]
+                  transition-all rounded-md text-lg text-center"
               >
-                <button
-                  onClick={handleUploadClick}
-                  className="w-48 px-6 py-3 font-medium bg-[#431363] text-white border border-[#4f2478]
-                    shadow-[3px_3px_0px_black] hover:shadow-none hover:translate-x-[3px] hover:translate-y-[3px]
-                    transition-all rounded-md text-lg text-center"
-                >
-                  Upload Product
-                </button>
-              </motion.div>
-            </div>
+                Upload Product
+              </button>
+            </motion.div>
           </div>
         </div>
       </div>
     </div>
-  );
+  </div>
+);
+
 };
 
 // Animation constants

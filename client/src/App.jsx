@@ -16,35 +16,52 @@ import ProductDetails from './pages/ProductDetails';
 import ChatPage from './pages/ChatPage';
 import ChatLayout from './pages/ChatLayout';
 
-const App = () => {
+//=======added by shaun========//
+import { ThemeProvider } from './context/ThemeContext';
+//=======added by shaun========//
 
+const App = () => {
   return (
-    <div data-theme='bumblebee'>
-      <Toaster
-        toastOptions={{
-          duration: 5000,
-          style: {
-            background: '#6c2d96',
-            color: 'white'
+    <ThemeProvider>
+      <div data-theme='bumblebee' className="min-h-screen transition-colors duration-300">
+        <Toaster
+          toastOptions={{
+            duration: 5000,
+            style: {
+              background: 'var(--toast-bg)',
+              color: 'var(--toast-text)'
+            }
+          }}
+        />
+        <NavBar />
+        <Routes>
+          <Route path='/' element={<HomePage />} />
+          <Route path="/admin" element={<Admin />} />
+          <Route path='/login' element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/explore" element={<Explore />} />
+          <Route path='/post-product' element={<PostProduct />} />
+          <Route path="/products/:id" element={<ProductDetails />} />
+          <Route path="/chat/:sellerId" element={<ChatPage />} />
+          <Route path="/chat" element={<ChatLayout />} />
+        </Routes>
+        <Footer />
+        
+        <style jsx global>{`
+          :root {
+            --toast-bg: #6c2d96;
+            --toast-text: white;
           }
-        }}
-      />
-      <NavBar />
-      <Routes>
-        <Route path='/' element={<HomePage />} />
-        <Route path="/admin" element={<Admin />} />
-        <Route path='/login' element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/explore" element={<Explore />} />
-        <Route path='/post-product' element={<PostProduct />} />
-        <Route path="/products/:id" element={<ProductDetails />} />
-        <Route path="/chat/:sellerId" element={<ChatPage />} />
-        <Route path="/chat" element={<ChatLayout />} />
-      </Routes>
-      <Footer />
-    </div>
+          
+          .dark {
+            --toast-bg: #8B5CF6;
+            --toast-text: #F8F8FF;
+          }
+        `}</style>
+      </div>
+    </ThemeProvider>
   )
 }
 

@@ -1,7 +1,13 @@
 import React, { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
+//=====added by shaun=====//
+import { useTheme } from '../context/ThemeContext';
+//=====added by shaun=====//
 
 const CategoryCard = ({ category, matched, shouldScroll }) => {
+//=====added by shaun=====//
+  const { theme } = useTheme();
+  //=====added by shaun=====//
   const ref = useRef(null);
 
   useEffect(() => {
@@ -11,15 +17,22 @@ const CategoryCard = ({ category, matched, shouldScroll }) => {
       }, 200);
     }
   }, [shouldScroll]);
+  //=====added by shaun=====//
+  const gradient = theme === 'dark'
+  ? 'linear-gradient(to bottom, rgba(0,0,0,0) 0%, #111827 100%)'
+  : 'linear-gradient(to bottom, rgba(255,255,255,0) 0%, #ffffff 100%)';
+
+//=====added by shaun=====//
 
   return (
     <Link
       to={`/explore?category=${encodeURIComponent(category.title)}`}
       aria-label={`Browse ${category.title}`}
       ref={ref}
-  className={`card bg-[#ffffff] w-full max-w-xs sm:max-w-sm lg:max-w-none mx-auto
-      shadow-md transition duration-300 ease-out hover:shadow-2xl hover:-translate-y-2 hover:scale-[1.04]
-      focus:outline-none focus:ring focus:ring-primary`}
+      className={`card bg-[#e8e8e8] dark:bg-[#121212] w-full max-w-xs sm:max-w-sm lg:max-w-none mx-auto
+shadow-md transition duration-300 ease-out hover:shadow-2xl hover:-translate-y-2 hover:scale-[1.04]
+focus:outline-none focus:ring focus:ring-primary`}
+
     >
       <div className="relative">
         <figure className="aspect-[4/3] relative overflow-hidden">
@@ -32,19 +45,21 @@ const CategoryCard = ({ category, matched, shouldScroll }) => {
           <div
             className="absolute left-0 bottom-0 w-full h-5 sm:h-9 lg:h-9 pointer-events-none"
             style={{
-              background: 'linear-gradient(to bottom, rgba(253,251,255,0) 0%, #fdfbff 100%)',
+              background: gradient
             }}
           />
         </figure>
-        <div className="card-body items-center text-center px-4 pb-0.5 -mt-8 sm:-mt-10 lg:-mt-12 relative z-10">
-          <h2 className="card-title text-sm sm:text-base lg:text-lg font-sans leading-tight">
-            {category.title}
-          </h2>
-          <p className="text-xs sm:text-sm font-sans text-gray-500">{category.description}</p>
+        <div className="card-body items-center text-center px-4 pb-0.5 -mt-4 sm:-mt-6 lg:-mt-8 relative z-10">
+         <h2 className="card-title text-sm sm:text-base lg:text-lg font-sans leading-tight text-[#3d165f] dark:text-[#D3D3D3] text-outline-black-light">
+           {category.title}
+           </h2>
+
+          <p className="text-xs sm:text-sm font-sans text-gray-500 dark:text-gray-400">{category.description}</p>
         </div>
       </div>
     </Link>
   );
+
 };
 
 export default CategoryCard;

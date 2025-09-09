@@ -39,90 +39,104 @@ const Explore = () => {
   }, []);
 
   return (
-    <div className="min-h-screen relative">
-      {/* Blurred background image */}
-      <div
-        className="absolute inset-0 w-full h-full z-0"
-        style={{
-          backgroundImage: "url('/assets/loginbk2.jpg')",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          filter: "blur(12px)",
-          opacity: 0.7,
-        }}
-        aria-hidden="true"
-      ></div>
+  <div className="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50/30 to-indigo-50 relative overflow-hidden dark:bg-gradient-to-br dark:from-black dark:via-gray-900 dark:to-gray-800">
+    
+    {/* Enhanced floating background elements */}
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      <div className="absolute -top-20 -left-20 w-96 h-96 bg-gradient-to-br from-purple-400/10 to-indigo-400/10 rounded-full blur-3xl animate-float"></div>
+      <div className="absolute -bottom-20 -right-20 w-96 h-96 bg-gradient-to-br from-indigo-400/10 to-purple-400/10 rounded-full blur-3xl animate-float-delay"></div>
+      <div className="absolute top-1/3 left-1/3 w-72 h-72 bg-gradient-to-br from-purple-300/8 to-pink-300/8 rounded-full blur-2xl animate-pulse"></div>
+    </div>
 
-      <div className="relative mt-0 pt-24 sm:pt-28 px-4 sm:px-10 lg:px-28 text-[#431363] z-10">
-        {/* Title */}
-        <h1
-          className="text-3xl sm:text-4xl font-bold text-center w-full mb-6 text-[#431363] drop-shadow-md"
-        >
-          Explore Products
-        </h1>
+    {/* Animated grid background */}
+    <div className="absolute inset-0 opacity-[0.02]">
+      <div className="absolute inset-0" style={{
+        backgroundImage: `url("data:image/svg+xml,%3csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3e%3cdefs%3e%3cpattern id='grid' width='60' height='60' patternUnits='userSpaceOnUse'%3e%3cpath d='m 60 0 l 0 60 l -60 0 z' fill='none' stroke='%23431363' stroke-width='1'/%3e%3c/pattern%3e%3c/defs%3e%3crect width='100%25' height='100%25' fill='url(%23grid)'/%3e%3c/svg%3e")`,
+      }}></div>
+    </div>
 
+    <div className="relative mt-0 pt-24 sm:pt-28 px-4 sm:px-10 lg:px-28 text-[#431363] dark:text-white z-10">
+      {/* Title */}
+      <h1 className="text-3xl sm:text-4xl font-bold text-center w-full mb-6 text-[#431363] dark:text-white drop-shadow-md">
+        Explore Products
+      </h1>
 
-        {/* Search / Sort */}
-        <div className="flex justify-end w-full mb-8 sm:mb-10">
-          <div className="flex gap-4 items-center w-full sm:w-auto max-w-xl">
-            <input
-              type="text"
-              placeholder="Search products..."
-              className="bg-[#f8f6ff] border border-[#e2e4ed] rounded px-4 py-2 text-[#431363] w-full max-w-xs focus:outline-none focus:border-[#431363] shadow-sm text-sm"
-              value={filters.global || ""}
-              onChange={e => setFilters(f => ({ ...f, global: e.target.value }))}
-            />
-            <select
-              className="bg-[#f8f6ff] border border-[#e2e4ed] rounded px-4 py-2 text-[#431363] w-full max-w-xs focus:outline-none focus:border-[#431363] shadow-sm text-sm appearance-none"
-              value={sorts.global || ""}
-              onChange={e => setSorts(s => ({ ...s, global: e.target.value }))}
-            >
-              <option value="">Sort By</option>
-              <option value="price-asc">Price: Low to High</option>
-              <option value="price-desc">Price: High to Low</option>
-            </select>
-          </div>
-        </div>
-
-        {/* Products Grid */}
-        <div className="max-w-6xl mx-auto">
-          {(() => {
-            let filteredProducts = [...products];
-
-            // Search
-            const search = (filters.global || "").toLowerCase();
-            if (search) {
-              filteredProducts = filteredProducts.filter(
-                p =>
-                  p.title.toLowerCase().includes(search) ||
-                  p.description.toLowerCase().includes(search)
-              );
-            }
-
-            // Sort
-            if (sorts.global === "price-asc") {
-              filteredProducts.sort((a, b) => a.price - b.price);
-            } else if (sorts.global === "price-desc") {
-              filteredProducts.sort((a, b) => b.price - a.price);
-            }
-
-            return (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                {filteredProducts.length === 0 ? (
-                  <div className="text-gray-00 italic">No products found.</div>
-                ) : (
-                  filteredProducts.map(product => (
-                    <ProductCard key={product.id} product={product} />
-                  ))
-                )}
-              </div>
-            );
-          })()}
+      {/* Search / Sort */}
+      <div className="flex justify-end w-full mb-8 sm:mb-10">
+        <div className="flex gap-4 items-center w-full sm:w-auto max-w-xl">
+          <input
+            type="text"
+            placeholder="Search products..."
+            className="bg-[#f8f6ff] dark:bg-black border border-[#e2e4ed] dark:border-gray-600 rounded px-4 py-2 text-[#431363] dark:text-white w-full max-w-xs focus:outline-none focus:border-[#431363] dark:focus:border-white shadow-sm text-sm placeholder:text-gray-500 dark:placeholder:text-gray-400"
+            value={filters.global || ""}
+            onChange={e => setFilters(f => ({ ...f, global: e.target.value }))}
+          />
+          <select
+            className="bg-[#f8f6ff] dark:bg-black border border-[#e2e4ed] dark:border-gray-600 rounded px-4 py-2 text-[#431363] dark:text-white w-full max-w-xs focus:outline-none focus:border-[#431363] dark:focus:border-white shadow-sm text-sm appearance-none"
+            value={sorts.global || ""}
+            onChange={e => setSorts(s => ({ ...s, global: e.target.value }))}
+          >
+            <option value="">Sort By</option>
+            <option value="price-asc">Price: Low to High</option>
+            <option value="price-desc">Price: High to Low</option>
+          </select>
         </div>
       </div>
-      <div className="mt-12"></div>
+
+      {/* Products Grid */}
+      <div className="max-w-6xl mx-auto">
+        {(() => {
+          let filteredProducts = [...products];
+
+          // Search
+          const search = (filters.global || "").toLowerCase();
+          if (search) {
+            filteredProducts = filteredProducts.filter(
+              p =>
+                p.title.toLowerCase().includes(search) ||
+                p.description.toLowerCase().includes(search)
+            );
+          }
+
+          // Sort
+          if (sorts.global === "price-asc") {
+            filteredProducts.sort((a, b) => a.price - b.price);
+          } else if (sorts.global === "price-desc") {
+            filteredProducts.sort((a, b) => b.price - a.price);
+          }
+
+          return (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 justify-items-center">
+              {filteredProducts.length === 0 ? (
+                <div className="col-span-full text-center text-gray-500 dark:text-gray-400 italic">No products found.</div>
+              ) : (
+                filteredProducts.map(product => (
+                  <ProductCard key={product.id} product={product} />
+                ))
+              )}
+            </div>
+          );
+        })()}
+      </div>
     </div>
-  );
+    <div className="mt-12"></div>
+
+    <style jsx>{`
+      @keyframes float {
+        0%, 100% { transform: translateY(0px) rotate(0deg); }
+        50% { transform: translateY(-20px) rotate(5deg); }
+      }
+      @keyframes float-delay {
+        0%, 100% { transform: translateY(0px) rotate(0deg); }
+        50% { transform: translateY(-15px) rotate(-3deg); }
+      }
+      .animate-float { animation: float 6s ease-in-out infinite; }
+      .animate-float-delay { animation: float-delay 8s ease-in-out infinite; }
+    `}</style>
+  </div>
+);
+
+
 };
 
 export default Explore;

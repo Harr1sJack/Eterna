@@ -26,7 +26,7 @@ const ChatLayout = () => {
   }, [user?.id]);
   
   return (
-    <div className="h-screen flex bg-gray-100 mt-12">
+    <div className="h-screen flex bg-gray-100 mt-28">
       {/* Left panel */}
       <div className="w-1/3 border-r bg-white overflow-y-auto">
         <h2 className="p-4 text-lg font-bold border-b">Chats</h2>
