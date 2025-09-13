@@ -27,7 +27,25 @@ const ProductDetails = () => {
     fetchProduct();
   }, [id]);
 
-  if (!product) return <p className="text-center py-10">Loading...</p>;
+  if (!product) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50/30 to-indigo-50 relative overflow-hidden dark:bg-gradient-to-br dark:from-black dark:via-gray-900 dark:to-gray-800">
+        {/* Background elements */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute -top-20 -left-20 w-96 h-96 bg-gradient-to-br from-purple-400/10 to-indigo-400/10 rounded-full blur-3xl animate-float"></div>
+          <div className="absolute -bottom-20 -right-20 w-96 h-96 bg-gradient-to-br from-indigo-400/10 to-purple-400/10 rounded-full blur-3xl animate-float-delay"></div>
+        </div>
+        
+        {/* Loading content */}
+        <div className="relative z-10 flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-purple-500 mx-auto mb-4"></div>
+            <p className="text-gray-600 dark:text-gray-300 text-lg">Loading product details...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const handleChat = () => {
     console.log(product)

@@ -23,7 +23,7 @@ import { ThemeProvider } from './context/ThemeContext';
 const App = () => {
   return (
     <ThemeProvider>
-      <div data-theme='bumblebee' className="min-h-screen transition-colors duration-300">
+      <div data-theme='bumblebee' className="min-h-screen">
         <Toaster
           toastOptions={{
             duration: 5000,

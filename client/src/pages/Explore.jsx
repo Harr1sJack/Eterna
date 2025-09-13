@@ -106,7 +106,7 @@ const Explore = () => {
           }
 
           return (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 justify-items-center">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-8 justify-items-center">
               {filteredProducts.length === 0 ? (
                 <div className="col-span-full text-center text-gray-500 dark:text-gray-400 italic">No products found.</div>
               ) : (
