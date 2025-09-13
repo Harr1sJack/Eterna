@@ -1,15 +1,35 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 
 const ProductCard = ({ product }) => {
   const { id, title, description, price, images = [] } = product;
-  const [isLiked, setIsLiked] = useState(false);
+  const navigate = useNavigate();
+  
+  // Check if product is already in wishlist
+  const [isLiked, setIsLiked] = useState(() => {
+    const wishlist = JSON.parse(localStorage.getItem('wishlist') || '[]');
+    return wishlist.some(item => item.id === id);
+  });
 
   const handleLikeClick = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsLiked(!isLiked);
-    console.log('Liked:', title);
+    
+    // Get current wishlist from localStorage
+    const currentWishlist = JSON.parse(localStorage.getItem('wishlist') || '[]');
+    
+    if (isLiked) {
+      // Remove from wishlist
+      const updatedWishlist = currentWishlist.filter(item => item.id !== id);
+      localStorage.setItem('wishlist', JSON.stringify(updatedWishlist));
+      setIsLiked(false);
+    } else {
+      // Add to wishlist
+      const productToAdd = { id, title, description, price, images };
+      const updatedWishlist = [...currentWishlist, productToAdd];
+      localStorage.setItem('wishlist', JSON.stringify(updatedWishlist));
+      setIsLiked(true);
+    }
   };
 
   return (

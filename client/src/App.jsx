@@ -15,6 +15,8 @@ import Admin from './pages/Admin';
 import ProductDetails from './pages/ProductDetails';
 import ChatPage from './pages/ChatPage';
 import ChatLayout from './pages/ChatLayout';
+import Wishlist from './pages/Wishlist';
+import FloatingDock from './components/FloatingDock';
 
 //=======added by shaun========//
 import { ThemeProvider } from './context/ThemeContext';
@@ -46,8 +48,12 @@ const App = () => {
           <Route path="/products/:id" element={<ProductDetails />} />
           <Route path="/chat/:sellerId" element={<ChatPage />} />
           <Route path="/chat" element={<ChatLayout />} />
+          <Route path="/wishlist" element={<Wishlist />} />
         </Routes>
         <Footer />
+        
+        {/* Floating Dock Navigation */}
+        <FloatingDock />
         
         <style jsx global>{`
           :root {
