@@ -7,6 +7,9 @@ const FloatingDock = () => {
   const navigate = useNavigate();
   const mouseX = useMotionValue(Infinity);
 
+  // Check if we're on a chat page to adjust positioning
+  const isOnChatPage = location.pathname === '/chat' || location.pathname.startsWith('/chat/');
+
   // Navigation items configuration
   const navItems = [
     {
@@ -61,7 +64,9 @@ const FloatingDock = () => {
   };
 
   return (
-    <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-[9999]">
+    <div className={`fixed left-1/2 transform -translate-x-1/2 z-[9999] ${
+      isOnChatPage ? 'bottom-4' : 'bottom-8'
+    }`}>
       <motion.div
         onMouseMove={(e) => mouseX.set(e.pageX)}
         onMouseLeave={() => mouseX.set(Infinity)}

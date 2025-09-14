@@ -1,5 +1,5 @@
 import React from 'react'
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, useLocation } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast';
 
 import HomePage from './pages/HomePage'
@@ -23,6 +23,11 @@ import { ThemeProvider } from './context/ThemeContext';
 //=======added by shaun========//
 
 const App = () => {
+  const location = useLocation();
+  
+  // Hide footer on chat pages
+  const shouldHideFooter = location.pathname === '/chat' || location.pathname.startsWith('/chat/');
+
   return (
     <ThemeProvider>
       <div data-theme='bumblebee' className="min-h-screen">
@@ -50,7 +55,9 @@ const App = () => {
           <Route path="/chat" element={<ChatLayout />} />
           <Route path="/wishlist" element={<Wishlist />} />
         </Routes>
-        <Footer />
+        
+        {/* Conditionally render Footer - hide on chat pages */}
+        {!shouldHideFooter && <Footer />}
         
         {/* Floating Dock Navigation */}
         <FloatingDock />
