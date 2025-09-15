@@ -17,7 +17,7 @@ const Wishlist = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900 transition-colors duration-300">
+    <div className="min-h-screen bg-white dark:bg-[#000000] transition-colors duration-300">
       {/* Background decorative elements matching existing theme */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-20 -left-20 w-96 h-96 bg-gradient-to-br from-purple-400/10 to-indigo-400/10 rounded-full blur-3xl animate-pulse"></div>
@@ -50,7 +50,7 @@ const Wishlist = () => {
         {wishlistItems.length === 0 ? (
           // Empty wishlist state
           <div className="max-w-md mx-auto text-center">
-            <div className="bg-[#f8f8f8] dark:bg-gray-800 rounded-2xl p-8 border border-gray-100 dark:border-gray-700 transition-colors duration-300">
+            <div className="bg-[#f8f8f8] dark:bg-[#131313] rounded-2xl p-8 border border-gray-100 dark:border-gray-600 transition-colors duration-300">
               {/* Empty wishlist icon */}
               <div className="mb-6">
                 <div className="w-24 h-24 mx-auto bg-gradient-to-r from-purple-500/20 to-indigo-500/20 dark:from-purple-400/20 dark:to-indigo-400/20 rounded-full flex items-center justify-center">
@@ -82,7 +82,7 @@ const Wishlist = () => {
             {wishlistItems.map((item, index) => (
               <div 
                 key={item.id}
-                className="bg-[#f8f8f8] dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700 transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/10 hover:-translate-y-1"
+                className="bg-[#f8f8f8] dark:bg-[#131313] rounded-2xl p-6 border border-gray-100 dark:border-gray-600 transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/10 hover:-translate-y-1"
               >
                 {/* Item image */}
                 <div className="aspect-square bg-gradient-to-br from-purple-500/10 to-indigo-500/10 rounded-xl mb-4 overflow-hidden">
@@ -138,7 +138,7 @@ const Wishlist = () => {
           <div className="inline-flex space-x-4">
             <button 
               onClick={() => window.history.back()}
-              className="px-6 py-3 bg-white/20 dark:bg-gray-800/30 backdrop-blur-xl border border-gray-200/30 dark:border-gray-600/30 rounded-xl text-slate-700 dark:text-gray-200 font-medium transition-all duration-300 hover:bg-white/30 dark:hover:bg-gray-700/30 hover:scale-105"
+              className="px-6 py-3 bg-white/20 dark:bg-[#131313]/30 backdrop-blur-xl border border-gray-200/30 dark:border-gray-600/30 rounded-xl text-slate-700 dark:text-gray-200 font-medium transition-all duration-300 hover:bg-white/30 dark:hover:bg-black/30 hover:scale-105"
             >
               ← Go Back
             </button>

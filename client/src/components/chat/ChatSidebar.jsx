@@ -15,9 +15,9 @@ const ChatSidebar = ({
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
 
   return (
-    <div className="h-full flex flex-col bg-white dark:bg-gray-800">
+    <div className="h-full flex flex-col bg-white dark:bg-[#131313]">
       {/* Header */}
-      <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+      <div className="p-4 border-b border-gray-200 dark:border-gray-600">
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-xl font-semibold text-gray-800 dark:text-white">
             Chats
@@ -25,7 +25,7 @@ const ChatSidebar = ({
           <div className="flex items-center space-x-2">
             <button
               onClick={() => setShowSearch(!showSearch)}
-              className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-black transition-colors"
             >
               <svg className="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -52,7 +52,7 @@ const ChatSidebar = ({
               placeholder="Search chats..."
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-gray-100 dark:bg-gray-700 border-0 rounded-lg text-sm text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:outline-none"
+              className="w-full pl-10 pr-4 py-2 bg-gray-100 dark:bg-[#000000] border-0 rounded-lg text-sm text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:outline-none"
             />
           </motion.div>
         )}
@@ -82,7 +82,7 @@ const ChatSidebar = ({
                 className={`relative p-3 rounded-lg cursor-pointer transition-all duration-200 group ${
                   activeChat?.id === chat.id
                     ? 'bg-purple-100 dark:bg-purple-900/30 border-l-4 border-purple-500'
-                    : 'hover:bg-gray-100 dark:hover:bg-gray-700'
+                    : 'hover:bg-gray-100 dark:hover:bg-black'
                 }`}
               >
                 <div className="flex items-center space-x-3">
@@ -117,7 +117,7 @@ const ChatSidebar = ({
                             e.stopPropagation();
                             setShowContextMenu(showContextMenu === chat.id ? null : chat.id);
                           }}
-                          className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors opacity-0 group-hover:opacity-100"
+                          className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors opacity-0 group-hover:opacity-100"
                         >
                           <svg className="w-4 h-4 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
@@ -144,7 +144,7 @@ const ChatSidebar = ({
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.8 }}
-                    className="absolute top-12 right-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-600 py-1 z-20 min-w-[120px]"
+                    className="absolute top-12 right-2 bg-white dark:bg-[#131313] rounded-lg shadow-lg border border-gray-200 dark:border-gray-600 py-1 z-20 min-w-[120px]"
                   >
                     <button
                       onClick={(e) => {
@@ -173,7 +173,7 @@ const ChatSidebar = ({
                     <motion.div
                       initial={{ scale: 0.8 }}
                       animate={{ scale: 1 }}
-                      className="bg-white dark:bg-gray-800 rounded-xl p-6 max-w-sm mx-4 shadow-xl"
+                      className="bg-white dark:bg-[#131313] rounded-xl p-6 max-w-sm mx-4 shadow-xl"
                       onClick={(e) => e.stopPropagation()}
                     >
                       <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
@@ -194,7 +194,7 @@ const ChatSidebar = ({
                         </button>
                         <button
                           onClick={() => setShowDeleteConfirm(null)}
-                          className="flex-1 px-4 py-2 bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 text-gray-700 dark:text-gray-300 rounded-lg transition-colors"
+                          className="flex-1 px-4 py-2 bg-gray-200 dark:bg-[#000000] hover:bg-gray-300 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg transition-colors"
                         >
                           Cancel
                         </button>

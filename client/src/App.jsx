@@ -13,7 +13,6 @@ import Explore from './pages/Explore';
 import PostProduct from './pages/PostProduct';
 import Admin from './pages/Admin';
 import ProductDetails from './pages/ProductDetails';
-import ChatPage from './pages/ChatPage';
 import ChatLayout from './pages/ChatLayout';
 import Wishlist from './pages/Wishlist';
 import FloatingDock from './components/FloatingDock';
@@ -51,8 +50,7 @@ const App = () => {
           <Route path="/explore" element={<Explore />} />
           <Route path='/post-product' element={<PostProduct />} />
           <Route path="/products/:id" element={<ProductDetails />} />
-          <Route path="/chat/:sellerId" element={<ChatPage />} />
-          <Route path="/chat" element={<ChatLayout />} />
+          <Route path="/chat/*" element={<ChatLayout />} />
           <Route path="/wishlist" element={<Wishlist />} />
         </Routes>
         

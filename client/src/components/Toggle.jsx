@@ -14,9 +14,7 @@ const Toggle = ({ options = ["Option 1", "Option 2"], onChange }) => {
   };
 
   return (
-    <div
-      className={`grid h-[200px] place-content-center px-4 transition-colors`}
-    >
+    <div className="flex justify-center">
       <SliderToggle
         options={options}
         selected={selected}
@@ -28,14 +26,14 @@ const Toggle = ({ options = ["Option 1", "Option 2"], onChange }) => {
 
 const SliderToggle = ({ options, selected, setSelected }) => {
   return (
-    <div className="relative flex w-fit items-center rounded-full border border-gray-300 dark:border-gray-600">
+    <div className="relative flex w-fit items-center rounded-full border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700">
       {options.map((option, index) => (
         <button
           key={option}
           className={`${TOGGLE_CLASSES} ${
             selected === option
               ? "text-white"
-              : "text-slate-800 dark:text-slate-300"
+              : "text-slate-800 dark:text-slate-300 hover:text-slate-600 dark:hover:text-slate-200"
           }`}
           onClick={() => setSelected(option)}
         >
@@ -51,7 +49,7 @@ const SliderToggle = ({ options, selected, setSelected }) => {
         <motion.span
           layout
           transition={{ type: "spring", damping: 15, stiffness: 250 }}
-          className="h-full w-1/2 rounded-full bg-gradient-to-r from-violet-600 to-indigo-600"
+          className="h-full w-1/2 rounded-full bg-gradient-to-r from-violet-600 to-indigo-600 shadow-lg"
         />
       </div>
     </div>

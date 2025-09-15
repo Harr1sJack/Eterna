@@ -1,16 +1,19 @@
 import React, {useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
+import Loader from '../components/Loader';
 import axios from 'axios';
 
 const Explore = () => {
   const [products, setProducts] = useState([]);
   const [filters, setFilters] = useState({});
   const [sorts, setSorts] = useState({});
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
+        setLoading(true);
         const res = await axios.get(`${import.meta.env.VITE_SERVER_URL}/api/products/approved`);
 
         const structuredProducts = res.data.map(p => ({
@@ -32,11 +35,26 @@ const Explore = () => {
         setProducts(structuredProducts);
       } catch (err) {
         console.error("Error fetching products:", err);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchProducts();
   }, []);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen bg-gradient-to-br from-slate-50 via-purple-50/30 to-indigo-50 dark:bg-gradient-to-br dark:from-black dark:via-gray-900 dark:to-gray-800">
+        <div className="flex flex-col items-center">
+          <Loader />
+          <p className="text-[#431363] dark:text-purple-300 text-xl mt-4 font-medium">
+            Loading products...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
   <div className="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50/30 to-indigo-50 relative overflow-hidden dark:bg-gradient-to-br dark:from-black dark:via-gray-900 dark:to-gray-800">
@@ -56,10 +74,14 @@ const Explore = () => {
     </div>
 
     <div className="relative mt-0 pt-24 sm:pt-28 px-4 sm:px-10 lg:px-28 text-[#431363] dark:text-white z-10">
-      {/* Title */}
-      <h1 className="text-3xl sm:text-4xl font-bold text-center w-full mb-6 text-[#431363] dark:text-white drop-shadow-md">
-        Explore Products
-      </h1>
+      {/* Header section with gradient text matching existing theme */}
+      <div className="text-center mb-12">
+        <h1 className="text-4xl md:text-5xl font-bold mb-4">
+          <span className="bg-gradient-to-r from-slate-800 via-purple-600 to-slate-800 dark:from-gray-300 dark:via-purple-400 dark:to-gray-300 bg-clip-text text-transparent">
+            Explore Products
+          </span>
+        </h1>
+      </div>
 
       {/* Search / Sort */}
       <div className="flex justify-end w-full mb-8 sm:mb-10">

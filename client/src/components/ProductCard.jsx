@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
-const ProductCard = ({ product }) => {
+const ProductCard = ({ product, actionButtons }) => {
   const { id, title, description, price, images = [] } = product;
   const navigate = useNavigate();
   
@@ -114,14 +114,14 @@ const ProductCard = ({ product }) => {
           {/* Heart Filled */}
           <svg 
             xmlns="http://www.w3.org/2000/svg" 
-            className={`w-5 h-5 fill-red-500 absolute transition-all duration-300 ${isLiked ? 'opacity-100 animate-pulse' : 'opacity-0 scale-0'}`}
+            className={`w-5 h-5 fill-red-500 absolute transition-all duration-300 ${isLiked ? 'opacity-100 animate-[heartBeat_0.6s_ease-in-out_1]' : 'opacity-0 scale-0'}`}
             viewBox="0 0 24 24"
           >
             <path d="M17.5,1.917a6.4,6.4,0,0,0-5.5,3.3,6.4,6.4,0,0,0-5.5-3.3A6.8,6.8,0,0,0,0,8.967c0,4.547,4.786,9.513,8.8,12.88a4.974,4.974,0,0,0,6.4,0C19.214,18.48,24,13.514,24,8.967A6.8,6.8,0,0,0,17.5,1.917Z" />
           </svg>
 
           {/* Celebration particles */}
-          <div className={`absolute inset-0 ${isLiked ? 'animate-ping' : 'opacity-0'}`}>
+          <div className={`absolute inset-0 ${isLiked ? 'animate-[celebration_0.8s_ease-out_1]' : 'opacity-0'}`}>
             <div className="absolute top-1 left-1 w-0.5 h-0.5 bg-red-400 rounded-full"></div>
             <div className="absolute top-1 right-1 w-0.5 h-0.5 bg-pink-400 rounded-full"></div>
             <div className="absolute bottom-1 left-1.5 w-0.5 h-0.5 bg-red-300 rounded-full"></div>
@@ -135,6 +135,13 @@ const ProductCard = ({ product }) => {
       {/* Always visible floating elements */}
       <div className="absolute -top-1 -left-1 w-1.5 h-1.5 bg-purple-400/30 dark:bg-purple-500/30 rounded-full animate-pulse"></div>
       <div className="absolute -bottom-1 -left-1 w-1 h-1 bg-indigo-400/20 dark:bg-indigo-500/20 rounded-full animate-pulse" style={{animationDelay: '1s'}}></div>
+      
+      {/* Action Buttons - only show if actionButtons prop is provided */}
+      {actionButtons && (
+        <div className="mt-4 pt-4 border-t border-gray-200/50 dark:border-gray-600/50" onClick={(e) => {e.preventDefault(); e.stopPropagation();}}>
+          {actionButtons}
+        </div>
+      )}
     </div>
   </Link>
 );

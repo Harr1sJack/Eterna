@@ -98,7 +98,7 @@ const ChatArea = ({
 
   if (!activeChat) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+      <div className="flex-1 flex items-center justify-center bg-gray-50 dark:bg-[#000000]">
         <div className="text-center text-gray-500 dark:text-gray-400">
           <svg className="w-24 h-24 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
@@ -111,9 +111,9 @@ const ChatArea = ({
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-white dark:bg-gray-900 relative">
+    <div className="flex-1 flex flex-col bg-white dark:bg-[#000000] relative">
       {/* Chat Header */}
-      <div className="flex items-center justify-between p-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm">
+      <div className="flex items-center justify-between p-4 bg-white dark:bg-[#131313] border-b border-gray-200 dark:border-gray-600 shadow-sm">
         <div className="flex items-center space-x-3">
           {isMobile && (
             <button
@@ -154,7 +154,7 @@ const ChatArea = ({
       </div>
 
       {/* Messages Area - with bottom padding for fixed input */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 dark:bg-gray-900 pb-24">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 dark:bg-[#000000] pb-24">
         <AnimatePresence>
           {activeChat.messages?.map((msg, index) => (
             <MessageBubble
@@ -190,14 +190,14 @@ const ChatArea = ({
       </div>
 
       {/* Message Input - Fixed at bottom */}
-      <div className="fixed bottom-20 left-0 right-0 md:left-[300px] lg:left-[340px] xl:left-[400px] p-4 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 z-10">
+      <div className="fixed bottom-20 left-0 right-0 md:left-[300px] lg:left-[340px] xl:left-[400px] p-4 bg-white dark:bg-[#131313] border-t border-gray-200 dark:border-gray-600 z-10">
         {/* Reply Preview */}
         {replyToMessage && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="mb-3 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg border-l-4 border-purple-500"
+            className="mb-3 p-3 bg-gray-100 dark:bg-[#000000] rounded-lg border-l-4 border-purple-500"
           >
             <div className="flex items-center justify-between">
               <div className="flex-1">
@@ -247,7 +247,7 @@ const ChatArea = ({
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               placeholder="Type a message..."
-              className="w-full px-4 py-3 pr-12 bg-gray-100 dark:bg-gray-700 border-0 rounded-lg resize-none text-sm text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:outline-none h-12 overflow-y-auto"
+              className="w-full px-4 py-3 pr-12 bg-gray-100 dark:bg-[#000000] border-0 rounded-lg resize-none text-sm text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:outline-none h-12 overflow-y-auto"
               rows="1"
               style={{ height: '48px', minHeight: '48px', maxHeight: '48px' }}
               onKeyDown={(e) => {

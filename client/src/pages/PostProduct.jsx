@@ -356,9 +356,9 @@ const PostProduct = () => {
 
             {/* Image Upload with Hover Spread */}
             <div>
-              <label className="block text-gray-700 dark:text-gray-300 font-medium mb-2">Upload Image</label>
+              <label className="block text-gray-700 dark:text-gray-300 font-medium mb-2">Upload Images</label>
               <div
-                className="relative flex w-[600px] h-[140px] items-center justify-center"
+                className="relative flex w-full h-[140px] items-center justify-center"
                 style={{ minWidth: '140px', minHeight: '140px' }}
                 onMouseEnter={() => setStackHovered(true)}
                 onMouseLeave={() => setStackHovered(false)}
@@ -368,7 +368,7 @@ const PostProduct = () => {
                     htmlFor="file-upload"
                     className="absolute inset-0 flex items-center justify-center cursor-pointer border-2 border-dashed border-purple-400 dark:border-purple-500 rounded-lg transition text-purple-600 dark:text-purple-400 text-lg font-semibold"
                   >
-                    + Upload
+                    + Upload Images
                   </label>
                 )}
 
@@ -429,7 +429,7 @@ const PostProduct = () => {
               className="w-full bg-purple-600 text-white py-3 rounded-lg hover:bg-purple-700 dark:bg-purple-700 dark:hover:bg-purple-800 transition transform hover:scale-[1.02] font-semibold"
               disabled={uploading}
             >
-              {uploading ? 'Posting...' : 'Post Product '}
+              {uploading ? 'Posting...' : 'Post Product'}
             </button>
           </form>
         </div>

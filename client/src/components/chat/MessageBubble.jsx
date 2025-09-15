@@ -17,7 +17,7 @@ const MessageBubble = ({ message, onAddReaction, onDeleteMessage, onReplyToMessa
             </button>
             <div className="flex-1">
               <div className="flex items-center space-x-2">
-                <div className="flex-1 h-2 bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden">
+                <div className="flex-1 h-2 bg-gray-200 dark:bg-gray-800 rounded-full overflow-hidden">
                   <div className="h-full w-1/3 bg-purple-500 rounded-full"></div>
                 </div>
                 <span className="text-xs text-gray-500 dark:text-gray-400 font-mono">
@@ -107,7 +107,7 @@ const MessageBubble = ({ message, onAddReaction, onDeleteMessage, onReplyToMessa
           className={`relative px-4 py-3 rounded-2xl shadow-sm ${
             message.sent
               ? 'bg-purple-600 text-white rounded-br-md'
-              : 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-bl-md border border-gray-200 dark:border-gray-600'
+              : 'bg-white dark:bg-[#131313] text-gray-900 dark:text-white rounded-bl-md border border-gray-200 dark:border-gray-600'
           }`}
         >
           {/* Reply Context */}
@@ -115,7 +115,7 @@ const MessageBubble = ({ message, onAddReaction, onDeleteMessage, onReplyToMessa
             <div className={`mb-2 pb-2 border-l-2 pl-3 ${
               message.sent 
                 ? 'border-purple-300 bg-purple-500/20' 
-                : 'border-gray-300 dark:border-gray-500 bg-gray-100 dark:bg-gray-600'
+                : 'border-gray-300 dark:border-gray-500 bg-gray-100 dark:bg-[#000000]'
             } rounded`}>
               <div className={`text-xs font-medium ${
                 message.sent ? 'text-purple-200' : 'text-gray-600 dark:text-gray-300'
@@ -143,7 +143,7 @@ const MessageBubble = ({ message, onAddReaction, onDeleteMessage, onReplyToMessa
 
         {/* Reactions */}
         {message.reactions && message.reactions.length > 0 && (
-          <div className="absolute -bottom-2 left-2 flex items-center space-x-1 bg-white dark:bg-gray-800 rounded-full px-2 py-1 shadow-md border border-gray-200 dark:border-gray-600">
+          <div className="absolute -bottom-2 left-2 flex items-center space-x-1 bg-white dark:bg-[#131313] rounded-full px-2 py-1 shadow-md border border-gray-200 dark:border-gray-600">
             {message.reactions.slice(0, 3).map((reaction, index) => (
               <span key={index} className="text-sm">
                 {reaction}
@@ -168,7 +168,7 @@ const MessageBubble = ({ message, onAddReaction, onDeleteMessage, onReplyToMessa
           >
             <button
               onClick={onToggleReactions}
-              className="p-1.5 bg-white dark:bg-gray-700 rounded-full shadow-md border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+              className="p-1.5 bg-white dark:bg-[#131313] rounded-full shadow-md border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-black transition-colors"
             >
               <svg className="w-4 h-4 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -177,7 +177,7 @@ const MessageBubble = ({ message, onAddReaction, onDeleteMessage, onReplyToMessa
             
             <button 
               onClick={() => onReplyToMessage && onReplyToMessage(message)}
-              className="p-1.5 bg-white dark:bg-gray-700 rounded-full shadow-md border border-gray-200 dark:border-gray-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors group"
+              className="p-1.5 bg-white dark:bg-[#131313] rounded-full shadow-md border border-gray-200 dark:border-gray-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors group"
             >
               <svg className="w-4 h-4 text-gray-600 dark:text-gray-400 group-hover:text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
@@ -188,7 +188,7 @@ const MessageBubble = ({ message, onAddReaction, onDeleteMessage, onReplyToMessa
             {message.sent && (
               <button
                 onClick={() => setShowDeleteConfirm(true)}
-                className="p-1.5 bg-white dark:bg-gray-700 rounded-full shadow-md border border-gray-200 dark:border-gray-600 hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors group"
+                className="p-1.5 bg-white dark:bg-[#131313] rounded-full shadow-md border border-gray-200 dark:border-gray-600 hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors group"
               >
                 <svg className="w-4 h-4 text-gray-600 dark:text-gray-400 group-hover:text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -204,7 +204,7 @@ const MessageBubble = ({ message, onAddReaction, onDeleteMessage, onReplyToMessa
             initial={{ opacity: 0, scale: 0.8, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.8, y: 10 }}
-            className={`absolute top-full mt-2 bg-white dark:bg-gray-700 rounded-xl shadow-lg border border-gray-200 dark:border-gray-600 p-2 z-10 ${
+            className={`absolute top-full mt-2 bg-white dark:bg-[#131313] rounded-xl shadow-lg border border-gray-200 dark:border-gray-600 p-2 z-10 ${
               message.sent ? 'right-0' : 'left-0'
             }`}
           >
@@ -231,7 +231,7 @@ const MessageBubble = ({ message, onAddReaction, onDeleteMessage, onReplyToMessa
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.8 }}
-            className={`absolute top-full mt-2 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-600 p-4 z-20 min-w-[200px] ${
+            className={`absolute top-full mt-2 bg-white dark:bg-[#131313] rounded-xl shadow-lg border border-gray-200 dark:border-gray-600 p-4 z-20 min-w-[200px] ${
               message.sent ? 'right-0' : 'left-0'
             }`}
           >
@@ -250,7 +250,7 @@ const MessageBubble = ({ message, onAddReaction, onDeleteMessage, onReplyToMessa
               </button>
               <button
                 onClick={() => setShowDeleteConfirm(false)}
-                className="px-3 py-1.5 bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 text-gray-700 dark:text-gray-300 text-sm rounded-lg transition-colors"
+                className="px-3 py-1.5 bg-gray-200 dark:bg-[#000000] hover:bg-gray-300 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm rounded-lg transition-colors"
               >
                 Cancel
               </button>

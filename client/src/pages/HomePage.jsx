@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Hero from '../components/Hero';
 import CategoryCard from '../components/CategoryCard';
+import Loader from '../components/Loader';
 
 
 const HomePage = () => {
@@ -37,10 +38,13 @@ const HomePage = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen text-[#431363] text-3xl">
-        Loading categories...
-        <br />
-        <span className="loading loading-spinner text-error loading-xl w-12 h-12"></span>
+      <div className="flex justify-center items-center h-screen bg-[#e8e8e8] dark:bg-[#000]">
+        <div className="flex flex-col items-center">
+          <Loader />
+          <p className="text-[#431363] dark:text-purple-300 text-xl mt-4 font-medium">
+            Loading categories...
+          </p>
+        </div>
       </div>
     );
   }

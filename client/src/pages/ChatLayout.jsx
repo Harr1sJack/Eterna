@@ -24,7 +24,7 @@ const mockChats = [
       },
       {
         id: 2,
-        text: "Going great! Almost done with the UI. Shaun Rodrigues has been amazing with the design work!",
+        text: "Going well, thanks for asking!",
         timestamp: "2:28 PM",
         sent: true,
         status: "read",
@@ -45,14 +45,14 @@ const mockChats = [
     id: 2,
     name: "Harris",
     avatar: "/profile/default.png",
-    lastMessage: "The UI looks incredible! 🎨",
+    lastMessage: "Hey there! How have you been?",
     timestamp: "1:45 PM",
     unreadCount: 0,
     isOnline: true,
     messages: [
       {
         id: 1,
-        text: "Just saw the new design updates",
+        text: "Good morning! Hope you're having a great day",
         timestamp: "1:40 PM",
         sent: true,
         status: "read",
@@ -60,23 +60,23 @@ const mockChats = [
       },
       {
         id: 2,
-        text: "The UI looks incredible! 🎨",
+        text: "Hey there! How have you been?",
         timestamp: "1:45 PM",
         sent: false,
         status: "read",
-        reactions: ["🔥", "👍"],
+        reactions: ["�", "👍"],
         type: "text"
       },
       {
         id: 3,
-        text: "Thanks Harris! Shaun Rodrigues really put a lot of effort into this.",
+        text: "I've been good, thanks for asking! How about you?",
         timestamp: "1:46 PM",
         sent: true,
         status: "read",
         type: "text",
         replyTo: {
           id: 2,
-          text: "The UI looks incredible! 🎨",
+          text: "Hey there! How have you been?",
           senderName: "Harris"
         }
       }
@@ -148,14 +148,14 @@ const mockChats = [
     id: 5,
     name: "Shaun Rodrigues",
     avatar: "/profile/default.png",
-    lastMessage: "The chat interface looks amazing! 🚀",
+    lastMessage: "See you tomorrow! 👋",
     timestamp: "3:45 PM",
     unreadCount: 1,
     isOnline: true,
     messages: [
       {
         id: 1,
-        text: "Hey! Just wanted to say the new chat design is fantastic",
+        text: "Hey! Hope you're doing well",
         timestamp: "3:40 PM",
         sent: false,
         status: "read",
@@ -163,7 +163,7 @@ const mockChats = [
       },
       {
         id: 2,
-        text: "Thanks! Really appreciate the feedback",
+        text: "Thanks! Same to you, how's everything?",
         timestamp: "3:42 PM",
         sent: true,
         status: "read",
@@ -171,11 +171,11 @@ const mockChats = [
       },
       {
         id: 3,
-        text: "The chat interface looks amazing! 🚀",
+        text: "See you tomorrow! 👋",
         timestamp: "3:45 PM",
         sent: false,
         status: "delivered",
-        reactions: ["❤️", "🔥"],
+        reactions: ["😊"],
         type: "text"
       }
     ]
@@ -314,7 +314,7 @@ const ChatLayout = () => {
   };
 
   return (
-    <div className="flex h-screen bg-gray-100 dark:bg-gray-900 pt-16">
+    <div className="flex h-screen bg-gray-100 dark:bg-[#000000] pt-16">
       {/* Desktop Layout */}
       {!isMobile && (
         <>
