@@ -1,15 +1,15 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import ProductCard from "../components/ProductCard.jsx";
-import Switch from "../components/Switch.jsx"; // ✅ Import the new styled switch
-import Loader from "../components/Loader.jsx"; // ✅ Import the loader
+import Switch from "../components/Switch.jsx"; 
+import Loader from "../components/Loader.jsx"; 
 
 const Admin = () => {
   const [pending, setPending] = useState([]);
   const [existing, setExisting] = useState([]);
   const [selected, setSelected] = useState("New Requests");
-  const [showExisting, setShowExisting] = useState(false); // ✅ Switch state for main functionality
-  const [loading, setLoading] = useState(true); // ✅ Loading state
+  const [showExisting, setShowExisting] = useState(false); 
+  const [loading, setLoading] = useState(true);
 
   const BASE_URL = import.meta.env.VITE_SERVER_URL;
 

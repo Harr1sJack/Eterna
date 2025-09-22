@@ -39,7 +39,7 @@ const Profile = () => {
 
   useEffect(() => {
     if (!token) return;
-
+  
     const fetchProfile = async () => {
       try {
         const res = await axios.get(`${import.meta.env.VITE_SERVER_URL}/api/profile`, {
@@ -47,27 +47,32 @@ const Profile = () => {
             Authorization: `Bearer ${token}`,
           },
         });
-
+  
         const data = res.data;
         setName(data.name || '');
         setEmail(data.email || '');
         setDob(data.dob ? data.dob.slice(0, 10) : '');
         setGender(data.gender || '');
         setBio(data.bio || '');
+  
+        // Improved image URL detection logic
+        let picUrl = (data.profilePic || '').trim();
+        const isAbsoluteUrl = /^https?:\/\//i.test(picUrl);
+  
         setProfilePic(
-          data.profilePic
-            ? `${import.meta.env.VITE_SERVER_URL}/${data.profilePic}`
+          picUrl
+            ? (isAbsoluteUrl ? picUrl : `${import.meta.env.VITE_SERVER_URL}/${picUrl}`)
             : '/profile/default.png'
         );
-      
       } catch (err) {
         console.error(err);
         toast.error('Failed to load profile');
+        setProfilePic('/profile/default.png');
       }
     };
-
+  
     fetchProfile();
-  }, [token]);
+  }, [token]);  
 
   // Fetch user's posted products
   useEffect(() => {
@@ -108,13 +113,13 @@ const Profile = () => {
   const handlePicChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-  
+
     const maxSize = 2 * 1024 * 1024; // 2MB
     if (file.size > maxSize) {
       toast.error('Image size should be less than 2MB');
       return;
     }
-  
+
     setSelectedFileBase64(file); // store the actual File object
     setProfilePic(URL.createObjectURL(file)); // preview immediately
   };  
@@ -127,7 +132,7 @@ const Profile = () => {
     formData.append('bio', bio);
 
     if (selectedFileBase64) {
-      formData.append('profilePic', selectedFileBase64); // File object
+      formData.append('profilePic', selectedFileBase64);
     }
 
     try {
@@ -235,6 +240,7 @@ const Profile = () => {
               <img
                 src={profilePic}
                 alt="Profile"
+                onError={e => { e.currentTarget.src = "/profile/default.png"; }}
                 className="w-32 h-32 object-cover rounded-full border-4 border-purple-200 dark:border-purple-500 shadow-lg transition-all duration-300 group-hover:shadow-xl"
               />
               
@@ -963,7 +969,7 @@ const Profile = () => {
           </svg>
         </button>
         
-        <style jsx>{`
+        <style>{`
           @keyframes float {
             0%, 100% { transform: translateY(0); }
             50% { transform: translateY(-5px); }

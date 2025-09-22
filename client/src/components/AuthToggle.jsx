@@ -2,7 +2,6 @@ import React from 'react';
 import styled from 'styled-components';
 
 const AuthToggle = ({ mode, onModeChange, theme }) => {
-  console.log('AuthToggle render - mode:', mode, 'theme:', theme); // Debug log
   
   return (
     <StyledWrapper theme={theme}>
@@ -10,7 +9,6 @@ const AuthToggle = ({ mode, onModeChange, theme }) => {
         <button
           className={`toggle-button ${mode === 'signin' ? 'active' : ''}`}
           onClick={() => {
-            console.log('Clicked signin'); // Debug log
             onModeChange('signin');
           }}
         >
@@ -19,7 +17,6 @@ const AuthToggle = ({ mode, onModeChange, theme }) => {
         <button
           className={`toggle-button ${mode === 'register' ? 'active' : ''}`}
           onClick={() => {
-            console.log('Clicked register'); // Debug log
             onModeChange('register');
           }}
         >

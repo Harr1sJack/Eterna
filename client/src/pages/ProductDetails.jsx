@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { useAuth } from "../context/AuthContext";
+import toast from "react-hot-toast";
 
 const ProductDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user, token } = useAuth();
   const [product, setProduct] = useState(null);
 
   //===added by shaun===============
@@ -42,6 +45,36 @@ const ProductDetails = () => {
     fetchProduct();
   }, [id]);
 
+  // Updated handleChat function for product-based chat
+  const handleChat = () => {
+    // Check if user is authenticated
+    if (!user || !token) {
+      toast.error("Please log in to start a chat", {
+        icon: '🔒',
+        duration: 3000,
+      });
+      navigate('/login');
+      return;
+    }
+
+    // Check if user is trying to chat with themselves
+    if (user.id === product.sellerId._id) {
+      toast.error("You cannot chat with yourself!", {
+        icon: '😅',
+        duration: 3000,
+      });
+      return;
+    }
+
+    // Navigate to chat with product owner info
+    navigate("/chat", { 
+      state: { 
+        ownerId: product.sellerId._id,
+        productId: product._id 
+      } 
+    });
+  };
+
   if (!product) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
@@ -52,10 +85,6 @@ const ProductDetails = () => {
       </div>
     );
   }
-
-  const handleChat = () => {
-    navigate(`/chat`, { state: { sellerId: product.sellerId._id } });
-  };
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pt-16 md:pt-20">

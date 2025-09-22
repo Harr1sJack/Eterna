@@ -111,7 +111,6 @@ const ChatSidebar = ({
                         <span className="text-xs text-gray-500 dark:text-gray-400 flex-shrink-0">
                           {chat.timestamp}
                         </span>
-                        {/* Three dots menu button */}
                         <button
                           onClick={(e) => {
                             e.stopPropagation();

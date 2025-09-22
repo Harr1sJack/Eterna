@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import { GoogleLogin } from '@react-oauth/google';
 
 const AuthForm = ({ mode }) => {
   const navigate = useNavigate();
@@ -11,6 +12,15 @@ const AuthForm = ({ mode }) => {
   const { theme } = useTheme();
   const [form, setForm] = useState({ name: '', email: '', password: '' });
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      console.log('Current theme:', theme);
+    }, 3000);
+
+    // Cleanup on unmount
+    return () => clearInterval(intervalId);
+  }, [theme]);
 
   const handleChange = (e) => {
     setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -76,8 +86,49 @@ const AuthForm = ({ mode }) => {
     }
   };
 
-  const handleGoogleAuth = () => {
-    toast.info('Google authentication coming soon!');
+  // ✅ FIXED: Google OAuth Success Handler
+  const handleGoogleSuccess = async (credentialResponse) => {
+    if (loading) return;
+    setLoading(true);
+
+    try {
+      console.log('🔐 Google auth success:', credentialResponse);
+      
+      // Send Google token to your backend
+      const response = await axios.post(
+        `${import.meta.env.VITE_SERVER_URL}/api/auth/google`, 
+        {
+          token: credentialResponse.credential
+        }
+      );
+
+      // Use your existing AuthContext login
+      login(response.data.token);
+      
+      if (mode === 'signin') {
+        toast.success('Welcome back! Signed in with Google 🎉');
+      } else {
+        toast.success('Welcome! Account created with Google 🎉');
+      }
+      
+      navigate('/');
+      
+    } catch (error) {
+      console.error('Google auth error:', error);
+      if (error.response?.status === 400) {
+        toast.error(error.response.data.message || 'Account with this email already exists');
+      } else {
+        toast.error('Google authentication failed. Please try again.');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ✅ FIXED: Google OAuth Error Handler
+  const handleGoogleError = () => {
+    console.error('Google auth failed');
+    toast.error('Google authentication was cancelled');
   };
 
   return (
@@ -144,17 +195,6 @@ const AuthForm = ({ mode }) => {
             } ${loading ? 'opacity-60 cursor-not-allowed' : ''}`}
           />
 
-          {/* Forgot Password Link */}
-          {mode === 'signin' && (
-            <div className="block mt-2 ml-2">
-              <a href="#" className={`text-xs ${
-                theme === 'dark' ? 'text-purple-500' : 'text-blue-500'
-              }`}>
-                Forgot Password ?
-              </a>
-            </div>
-          )}
-
           {/* Submit Button */}
           <input
             type="submit"
@@ -168,31 +208,48 @@ const AuthForm = ({ mode }) => {
           />
         </form>
 
-        {/* Social Login */}
+        {/* ✅ FIXED: Google OAuth Section */}
         <div className="mt-6">
-          <span className={`block text-center text-xs ${
-            theme === 'dark' ? 'text-gray-400' : 'text-gray-400'
-          }`}>
-            Or {mode === 'signin' ? 'Sign in' : 'Sign up'} with
-          </span>
-          
-          <div className="w-full flex justify-center gap-4 mt-1">
-            <button
-              type="button"
-              className={`p-2 rounded-full w-12 h-12 grid place-content-center transition-all duration-200 ${
-                theme === 'dark'
-                  ? 'bg-gradient-to-r from-gray-800 to-gray-700 border-2 border-gray-700 hover:scale-110 active:scale-90'
-                  : 'bg-gradient-to-r from-black to-gray-500 border-2 border-white hover:scale-110 active:scale-90'
-              } ${loading ? 'opacity-60 cursor-not-allowed transform-none' : 'cursor-pointer'}`}
-              onClick={handleGoogleAuth}
-              disabled={loading}
-            >
-              <svg className="w-6 h-6 fill-white" xmlns="http://www.w3.org/2000/svg" height="1.5em" viewBox="0 0 488 512">
-                <path d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 123 24.5 166.3 64.9l-67.5 64.9C258.5 52.6 94.3 116.6 94.3 256c0 86.5 69.1 156.6 153.7 156.6 98.2 0 135-70.4 140.8-106.9H248v-85.3h236.1c2.3 12.7 3.9 24.9 3.9 41.4z" />
-              </svg>
-            </button>
+          <div className="flex items-center gap-4 mb-4">
+            <hr className={`flex-1 ${theme === 'dark' ? 'border-gray-600' : 'border-gray-300'}`} />
+            <span className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+              Or {mode === 'signin' ? 'sign in' : 'sign up'} with
+            </span>
+            <hr className={`flex-1 ${theme === 'dark' ? 'border-gray-600' : 'border-gray-300'}`} />
           </div>
+          
+          {/* Google Login Button */}
+          <div className="w-full flex justify-center">
+            <div className="w-full max-w-xs">
+              <GoogleLogin 
+                onSuccess={handleGoogleSuccess} 
+                onError={handleGoogleError} 
+                theme={theme === 'dark' ? 'filled_black' : 'filled_blue'} 
+                size="large" 
+                text={mode === 'signin' ? 'signin_with' : 'signup_with'} 
+                shape="rectangular" 
+                width={320}
+                disabled={loading}
+              />
+            </div>
+          </div>
+
+          {/* Loading overlay for Google button */}
+          {loading && (
+            <div className="absolute inset-0 bg-black bg-opacity-50 rounded-[20px] flex items-center justify-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+            </div>
+          )}
         </div>
+
+        {/* Terms notice for register */}
+        {mode === 'register' && (
+          <p className={`text-xs mt-4 text-center ${
+            theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+          }`}>
+            By signing up, you agree to our Terms of Service and Privacy Policy
+          </p>
+        )}
       </div>
     </div>
   );

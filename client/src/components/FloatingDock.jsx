@@ -1,14 +1,38 @@
-import React, { useRef } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
+import { useAuth } from '../context/AuthContext';
+import toast from 'react-hot-toast';
 
 const FloatingDock = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const mouseX = useMotionValue(Infinity);
+  const { user, token } = useAuth(); // Get both user AND token
+  
+  // Add a local state to force re-render on auth changes
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   // Check if we're on a chat page to adjust positioning
   const isOnChatPage = location.pathname === '/chat' || location.pathname.startsWith('/chat/');
+
+  // Update authentication state whenever user or token changes
+  useEffect(() => {
+    const authStatus = !!(user && token);
+    setIsAuthenticated(authStatus);
+  }, [user, token]);
+
+  // Auth check function for protected routes
+  const checkAuthAndNavigate = (href, title) => {
+    if (!isAuthenticated) {
+      toast.error(`Please log in to access ${title}`, {
+        icon: '🔒',
+        duration: 3000,
+      });
+      return false;
+    }
+    return true;
+  };
 
   // Navigation items configuration
   const navItems = [
@@ -20,7 +44,8 @@ const FloatingDock = () => {
         </svg>
       ),
       href: '/',
-      type: 'link'
+      type: 'link',
+      requiresAuth: false
     },
     {
       title: 'Back',
@@ -31,7 +56,8 @@ const FloatingDock = () => {
       ),
       href: '#',
       type: 'action',
-      action: () => navigate(-1)
+      action: () => navigate(-1),
+      requiresAuth: false
     },
     {
       title: 'Chat',
@@ -41,7 +67,8 @@ const FloatingDock = () => {
         </svg>
       ),
       href: '/chat',
-      type: 'link'
+      type: 'link',
+      requiresAuth: true
     },
     {
       title: 'Wishlist',
@@ -51,7 +78,8 @@ const FloatingDock = () => {
         </svg>
       ),
       href: '/wishlist',
-      type: 'link'
+      type: 'link',
+      requiresAuth: true
     }
   ];
 
@@ -72,14 +100,14 @@ const FloatingDock = () => {
         onMouseLeave={() => mouseX.set(Infinity)}
         className="mx-auto flex h-12 items-center gap-4 rounded-2xl px-4 py-2 shadow-2xl border backdrop-blur-xl"
         style={{
-          background: 'rgba(15, 23, 42, 0.95)', // Dark navy like your navbar
-          borderColor: 'rgba(99, 102, 241, 0.2)', // Purple border
+          background: 'rgba(15, 23, 42, 0.95)',
+          borderColor: 'rgba(99, 102, 241, 0.2)',
           boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(99, 102, 241, 0.1)'
         }}
       >
         {navItems.map((item, index) => (
           <IconContainer
-            key={item.title}
+            key={`${item.title}-${isAuthenticated}`} // Force re-render on auth change
             mouseX={mouseX}
             title={item.title}
             icon={item.icon}
@@ -87,6 +115,9 @@ const FloatingDock = () => {
             type={item.type}
             action={item.action}
             isActive={isActive(item.href)}
+            requiresAuth={item.requiresAuth}
+            checkAuthAndNavigate={checkAuthAndNavigate}
+            isAuthenticated={isAuthenticated} // Pass authentication status
           />
         ))}
       </motion.div>
@@ -94,16 +125,27 @@ const FloatingDock = () => {
   );
 };
 
-function IconContainer({ mouseX, title, icon, href, type, action, isActive }) {
+function IconContainer({ 
+  mouseX, 
+  title, 
+  icon, 
+  href, 
+  type, 
+  action, 
+  isActive, 
+  requiresAuth = false, 
+  checkAuthAndNavigate,
+  isAuthenticated // Use isAuthenticated instead of user
+}) {
   const ref = useRef(null);
+  const navigate = useNavigate();
 
-  // FIXED: Better distance calculation
+  // Animation values
   const distance = useTransform(mouseX, (val) => {
     const bounds = ref.current?.getBoundingClientRect() ?? { x: 0, width: 0 };
     return val - bounds.x - bounds.width / 2;
   });
 
-  // FIXED: More responsive animation ranges
   const widthSync = useTransform(distance, [-150, 0, 150], [40, 80, 40]);
   const width = useSpring(widthSync, { 
     mass: 0.1, 
@@ -125,15 +167,31 @@ function IconContainer({ mouseX, title, icon, href, type, action, isActive }) {
     damping: 15 
   });
 
-  const navigate = useNavigate();
-
+  // Handle clicks with auth check
   const handleClick = (e) => {
     if (type === 'action' && action) {
       e.preventDefault();
       action();
+      return;
+    }
+
+    // Check if this route requires authentication
+    if (requiresAuth && !checkAuthAndNavigate(href, title)) {
+      e.preventDefault();
+      return;
     }
   };
 
+  // Handle link clicks with auth check
+  const handleLinkClick = (e) => {
+    if (requiresAuth && !checkAuthAndNavigate(href, title)) {
+      e.preventDefault();
+      return;
+    }
+  };
+
+  // Visual indicator for protected routes when not authenticated
+  const isProtectedAndUnauthenticated = requiresAuth && !isAuthenticated;
   const content = (
     <motion.div
       ref={ref}
@@ -152,9 +210,13 @@ function IconContainer({ mouseX, title, icon, href, type, action, isActive }) {
         style={{
           background: isActive 
             ? 'rgba(99, 102, 241, 0.2)' 
+            : isProtectedAndUnauthenticated
+            ? 'rgba(239, 68, 68, 0.15)' // Red tint for protected routes
             : 'rgba(71, 85, 105, 0.3)',
           boxShadow: isActive 
             ? '0 8px 25px -8px rgba(99, 102, 241, 0.4), 0 0 0 2px rgba(99, 102, 241, 0.2)'
+            : isProtectedAndUnauthenticated
+            ? '0 4px 15px -4px rgba(239, 68, 68, 0.3), 0 0 0 1px rgba(239, 68, 68, 0.2)'
             : '0 4px 15px -4px rgba(0, 0, 0, 0.3)'
         }}
       />
@@ -165,6 +227,8 @@ function IconContainer({ mouseX, title, icon, href, type, action, isActive }) {
         style={{
           background: isActive 
             ? 'rgba(99, 102, 241, 0.15)' 
+            : isProtectedAndUnauthenticated
+            ? 'rgba(239, 68, 68, 0.1)'
             : 'rgba(99, 102, 241, 0.1)'
         }}
       />
@@ -174,24 +238,50 @@ function IconContainer({ mouseX, title, icon, href, type, action, isActive }) {
         className={`relative z-10 transition-colors duration-300 ${
           isActive 
             ? 'text-indigo-400' 
+            : isProtectedAndUnauthenticated
+            ? 'text-red-400 group-hover:text-red-300'
             : 'text-gray-300 group-hover:text-indigo-300'
         }`}
       >
         {icon}
       </div>
+
+      {/* FIXED: Lock icon overlay for protected routes when not authenticated */}
+      {isProtectedAndUnauthenticated && (
+        <motion.div 
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ type: "spring", stiffness: 300, damping: 20 }}
+          className="absolute top-0 right-0 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center shadow-lg"
+        >
+          <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+          </svg>
+        </motion.div>
+      )}
       
-      {/* Tooltip */}
+      {/* Enhanced Tooltip */}
       <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-90 transition-all duration-300 pointer-events-none z-20">
         <div 
           className="text-white text-xs px-2.5 py-1.5 rounded-lg whitespace-nowrap backdrop-blur-sm shadow-xl border"
           style={{
-            background: 'rgba(15, 23, 42, 0.95)',
-            borderColor: 'rgba(99, 102, 241, 0.3)'
+            background: isProtectedAndUnauthenticated 
+              ? 'rgba(239, 68, 68, 0.95)' 
+              : 'rgba(15, 23, 42, 0.95)',
+            borderColor: isProtectedAndUnauthenticated 
+              ? 'rgba(239, 68, 68, 0.3)' 
+              : 'rgba(99, 102, 241, 0.3)'
           }}
         >
-          {title}
-          <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent" 
-               style={{ borderTopColor: 'rgba(15, 23, 42, 0.95)' }}></div>
+          {isProtectedAndUnauthenticated ? `🔒 Login required for ${title}` : title}
+          <div 
+            className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent" 
+            style={{ 
+              borderTopColor: isProtectedAndUnauthenticated 
+                ? 'rgba(239, 68, 68, 0.95)' 
+                : 'rgba(15, 23, 42, 0.95)' 
+            }}
+          />
         </div>
       </div>
     </motion.div>
@@ -206,7 +296,7 @@ function IconContainer({ mouseX, title, icon, href, type, action, isActive }) {
   }
 
   return (
-    <Link to={href} className="outline-none focus:outline-none">
+    <Link to={href} onClick={handleLinkClick} className="outline-none focus:outline-none">
       {content}
     </Link>
   );

@@ -77,7 +77,6 @@ const ChatArea = ({
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
-      // Simulate file upload
       onSendMessage({
         text: `📎 ${file.name}`,
         type: 'file',
@@ -149,11 +148,9 @@ const ChatArea = ({
             </p>
           </div>
         </div>
-
-        {/* Removed phone, video call, and menu buttons as requested */}
       </div>
 
-      {/* Messages Area - with bottom padding for fixed input */}
+      {/* Messages Area */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 dark:bg-[#000000] pb-24">
         <AnimatePresence>
           {activeChat.messages?.map((msg, index) => (
@@ -189,7 +186,7 @@ const ChatArea = ({
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Message Input - Fixed at bottom */}
+      {/* Message Input */}
       <div className="fixed bottom-20 left-0 right-0 md:left-[300px] lg:left-[340px] xl:left-[400px] p-4 bg-white dark:bg-[#131313] border-t border-gray-200 dark:border-gray-600 z-10">
         {/* Reply Preview */}
         {replyToMessage && (

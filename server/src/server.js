@@ -42,6 +42,6 @@ const httpServer = http.createServer(app);
 ConnectDB()
   .then(() => {
     initSocket(httpServer);
-    httpServer.listen(PORT, () => console.log('Server on', PORT));
+    httpServer.listen(PORT, '0.0.0.0',() => console.log('Server on', PORT));
   })
   .catch(err => console.error(err));

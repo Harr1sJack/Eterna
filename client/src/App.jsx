@@ -1,7 +1,10 @@
+// src/App.jsx
 import React from 'react'
 import { Routes, Route, useLocation } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast';
+import { GoogleOAuthProvider } from '@react-oauth/google'; // ✅ CORRECT IMPORT
 
+// Your existing imports...
 import HomePage from './pages/HomePage'
 import NavBar from './components/NavBar'
 import Footer from './components/Footer'
@@ -17,9 +20,7 @@ import ChatLayout from './pages/ChatLayout';
 import Wishlist from './pages/Wishlist';
 import FloatingDock from './components/FloatingDock';
 
-//=======added by shaun========//
 import { ThemeProvider } from './context/ThemeContext';
-//=======added by shaun========//
 
 const App = () => {
   const location = useLocation();
@@ -28,51 +29,38 @@ const App = () => {
   const shouldHideFooter = location.pathname === '/chat' || location.pathname.startsWith('/chat/');
 
   return (
-    <ThemeProvider>
-      <div data-theme='bumblebee' className="min-h-screen">
-        <Toaster
-          toastOptions={{
-            duration: 5000,
-            style: {
-              background: 'var(--toast-bg)',
-              color: 'var(--toast-text)'
-            }
-          }}
-        />
-        <NavBar />
-        <Routes>
-          <Route path='/' element={<HomePage />} />
-          <Route path="/admin" element={<Admin />} />
-          <Route path='/login' element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/explore" element={<Explore />} />
-          <Route path='/post-product' element={<PostProduct />} />
-          <Route path="/products/:id" element={<ProductDetails />} />
-          <Route path="/chat/*" element={<ChatLayout />} />
-          <Route path="/wishlist" element={<Wishlist />} />
-        </Routes>
-        
-        {/* Conditionally render Footer - hide on chat pages */}
-        {!shouldHideFooter && <Footer />}
-        
-        {/* Floating Dock Navigation */}
-        <FloatingDock />
-        
-        <style jsx global>{`
-          :root {
-            --toast-bg: #6c2d96;
-            --toast-text: white;
-          }
+    <GoogleOAuthProvider clientId="885275156138-lnr4haqsp5rninjn4201p2sc5guud7ob.apps.googleusercontent.com">
+      <ThemeProvider>
+        <div data-theme='bumblebee' className="min-h-screen">
+          <Toaster
+            toastOptions={{
+              duration: 5000,
+              style: {
+                background: 'var(--toast-bg)',
+                color: 'var(--toast-text)'
+              }
+            }}
+          />
+          <NavBar />
+          <Routes>
+            <Route path='/' element={<HomePage />} />
+            <Route path="/admin" element={<Admin />} />
+            <Route path='/login' element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/explore" element={<Explore />} />
+            <Route path='/post-product' element={<PostProduct />} />
+            <Route path="/products/:id" element={<ProductDetails />} />
+            <Route path="/chat/*" element={<ChatLayout />} />
+            <Route path="/wishlist" element={<Wishlist />} />
+          </Routes>
           
-          .dark {
-            --toast-bg: #8B5CF6;
-            --toast-text: #F8F8FF;
-          }
-        `}</style>
-      </div>
-    </ThemeProvider>
+          {!shouldHideFooter && <Footer />}
+          <FloatingDock />
+        </div>
+      </ThemeProvider>
+    </GoogleOAuthProvider>
   )
 }
 
