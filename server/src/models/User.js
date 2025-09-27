@@ -39,6 +39,10 @@ const userSchema = new Schema(
       type: String,
       default: '/profile/default.png', // Standardized from 'avatar' and 'profilePic'
     },
+    firebaseProfilePic: { 
+      type: String,
+      default: ''
+    },
     bio: {
       type: String,
       maxlength: 500,

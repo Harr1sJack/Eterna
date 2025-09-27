@@ -47,23 +47,23 @@ const NavBar = () => {
       });
   
       if (res.data.profilePic) {
-        console.log(res.data.profilePic)
-        // Prepend server URL only if not already absolute URL
-        const isAbsoluteUrl = res.data.profilePic.startsWith('http://') || res.data.profilePic.startsWith('https://');
+        // Check for Firebase URL first, then fall back to server URL
+        const picUrl = res.data.firebaseProfilePic || res.data.profilePic;
+        const isAbsoluteUrl = picUrl.startsWith('http://') || picUrl.startsWith('https://');
   
-        const picPath = isAbsoluteUrl
-          ? res.data.profilePic
-          : `${import.meta.env.VITE_SERVER_URL}/${res.data.profilePic}`;
+        const finalUrl = isAbsoluteUrl
+          ? picUrl
+          : `${import.meta.env.VITE_SERVER_URL}/${picUrl}`;
   
-        setProfilePic(picPath);
+        setProfilePic(finalUrl);
       } else {
-        setProfilePic(null);
+        setProfilePic('/profile/default.png');
       }
     } catch (err) {
       console.error("Error fetching profile picture", err);
+      setProfilePic('/profile/default.png');
     }
   };
-  
 
   // 🔥 REPLACE MANUAL LOGOUT WITH AUTH CONTEXT LOGOUT
   const handleLogout = () => {

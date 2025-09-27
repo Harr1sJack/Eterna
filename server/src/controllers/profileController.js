@@ -20,35 +20,40 @@ const __dirname = path.dirname(__filename);
 export const updateProfile = async (req, res) => {
   try {
     const updates = { ...req.body };
-    delete updates.profilePic; // Remove conflicts with profilePic field
-    
-    if (req.file) {
-      // Get current user to find old profilePic
+    delete updates.profilePic;
+    delete updates.firebaseProfileUrl;
+
+    // Handle profile picture
+    if (req.file || req.body.firebaseProfileUrl) {
       const currentUser = await User.findById(req.user.id);
       
-      // Delete old image if it exists and isn't the default
+      // Delete old server image if exists and not default
       if (currentUser.profilePic && 
           currentUser.profilePic !== '/profile/default.png' && 
-          !currentUser.profilePic.includes('default')) {
+          !currentUser.profilePic.includes('default') &&
+          !currentUser.profilePic.startsWith('https://')) {
         
         const oldImagePath = path.join(__dirname, '../../', currentUser.profilePic);
         
-        // Check if file exists and delete it
         if (fs.existsSync(oldImagePath)) {
           try {
             fs.unlinkSync(oldImagePath);
-            console.log(`✅ Deleted old image: ${oldImagePath}`);
+            console.log('✅ Deleted old image');
           } catch (deleteError) {
-            console.error(`❌ Failed to delete old image: ${deleteError.message}`);
+            console.error('❌ Failed to delete old image:', deleteError);
           }
-        } else {
-          console.log(`⚠️ Old image not found: ${oldImagePath}`);
         }
       }
       
-      // Set new profilePic path
-      updates.profilePic = `uploads/profile/${req.file.filename}`;
-      console.log(`📸 New image: ${updates.profilePic}`);
+      if (req.body.firebaseProfileUrl) {
+        // Store Firebase URL
+        updates.firebaseProfilePic = req.body.firebaseProfileUrl;
+        updates.profilePic = req.body.firebaseProfileUrl; // For backward compatibility
+      } else {
+        // Store server path
+        updates.profilePic = `uploads/profile/${req.file.filename}`;
+        updates.firebaseProfilePic = ''; // Clear any existing Firebase URL
+      }
     }
 
     const user = await User.findByIdAndUpdate(

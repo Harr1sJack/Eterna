@@ -76,38 +76,32 @@ export const getMyProducts = async (req, res) => {
   }
 };
 
-
 export const createProduct = async (req, res) => {
   try {
-    const { title, description, categoryId, price } = req.body;
+    const { title, description, categoryId, price, firebaseUrls } = req.body;
     const sellerId = req.user.id;
 
     if (!title || !description || !price || !categoryId) {
       return res.status(400).json({ message: 'Missing required fields' });
     }
 
-    // multer puts uploaded files in req.files
-    if (!req.files || req.files.length === 0) {
-      return res.status(400).json({ message: 'At least one product image is required' });
-    }
-
-    // Store relative paths so they can be accessed via /uploads/product/...
-    const imagePaths = req.files.map(file =>
+    // Handle both Firebase URLs and server uploads
+    const imagePaths = req.files?.map(file =>
       file.path.replace(/\\/g, '/').replace(/^.*uploads\//, 'uploads/')
-    );
+    ) || [];
 
     const product = new Product({
       title,
       description,
       categoryId,
       price,
-      images: imagePaths,
+      images: imagePaths, // Server paths
+      firebaseUrls: JSON.parse(firebaseUrls || '[]'), // Firebase URLs
       sellerId,
       isApproved: false
     });
 
     await product.save();
-
     res.status(201).json({ message: 'Product created, pending approval', product });
   } catch (error) {
     console.error('Error creating product:', error);

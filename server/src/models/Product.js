@@ -32,6 +32,10 @@ const productSchema = new Schema(
         message: 'At least one product image is required',
       },
     },
+    firebaseUrls: {
+      type: [String],
+      default: [],
+    },
     sellerId: {
       type: Schema.Types.ObjectId,
       ref: 'User',

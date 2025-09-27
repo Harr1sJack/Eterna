@@ -55,10 +55,10 @@ const Profile = () => {
         setGender(data.gender || '');
         setBio(data.bio || '');
   
-        // Improved image URL detection logic
-        let picUrl = (data.profilePic || '').trim();
-        const isAbsoluteUrl = /^https?:\/\//i.test(picUrl);
-  
+        // In useEffect where profile is fetched
+        const picUrl = data.firebaseProfilePic || data.profilePic || '';
+        const isAbsoluteUrl = picUrl.startsWith('http://') || picUrl.startsWith('https://');
+
         setProfilePic(
           picUrl
             ? (isAbsoluteUrl ? picUrl : `${import.meta.env.VITE_SERVER_URL}/${picUrl}`)
@@ -110,32 +110,48 @@ const Profile = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  const handlePicChange = (e) => {
+  const handlePicChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
+  
     const maxSize = 2 * 1024 * 1024; // 2MB
     if (file.size > maxSize) {
       toast.error('Image size should be less than 2MB');
       return;
     }
-
-    setSelectedFileBase64(file); // store the actual File object
-    setProfilePic(URL.createObjectURL(file)); // preview immediately
-  };  
+  
+    try {
+      // Upload to Firebase first
+      const firebaseUrl = await uploadToFirebase(file, 'profiles');
+      
+      // Set the file for server upload (backwards compatibility)
+      setSelectedFileBase64(file);
+      // Show preview immediately using Firebase URL
+      setProfilePic(firebaseUrl);
+      
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      toast.error('Failed to upload image');
+    }
+  };
 
   const handleSave = async () => {
-    const formData = new FormData();
-    formData.append('name', name);
-    formData.append('dob', dob);
-    formData.append('gender', gender);
-    formData.append('bio', bio);
-
-    if (selectedFileBase64) {
-      formData.append('profilePic', selectedFileBase64);
-    }
-
     try {
+      const formData = new FormData();
+      formData.append('name', name);
+      formData.append('dob', dob);
+      formData.append('gender', gender);
+      formData.append('bio', bio);
+  
+      if (selectedFileBase64) {
+        // Add Firebase URL to formData if we have one
+        if (profilePic.startsWith('https://')) {
+          formData.append('firebaseProfileUrl', profilePic);
+        }
+        // Also append file for server upload (backwards compatibility)
+        formData.append('profilePic', selectedFileBase64);
+      }
+  
       const res = await axios.put(
         `${import.meta.env.VITE_SERVER_URL}/api/profile`,
         formData,
@@ -146,15 +162,19 @@ const Profile = () => {
           },
         }
       );
-
-      // backend returns relative URL
+  
+      // Use Firebase URL if available, otherwise use server URL
       if (res.data.profilePic) {
-        setProfilePic(`${import.meta.env.VITE_SERVER_URL}/${res.data.profilePic}`);
+        const isFirebaseUrl = res.data.profilePic.startsWith('https://');
+        setProfilePic(
+          isFirebaseUrl 
+            ? res.data.profilePic 
+            : `${import.meta.env.VITE_SERVER_URL}/${res.data.profilePic}`
+        );
       }
-
+  
       toast.success('Profile updated!');
-      setIsEditMode(false); // Close edit mode after saving
-      setSelectedFileBase64(''); // Clear selected file
+      setIsEditMode(false);
     } catch (err) {
       console.error(err);
       toast.error('Failed to update profile');

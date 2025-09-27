@@ -5,7 +5,7 @@ import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import Cropper from 'react-easy-crop';
 import { useTheme } from '../context/ThemeContext';
-
+import { uploadMultipleFiles } from '../utils/firebase';
 
 /** Error Boundary Component **/
 class ErrorBoundary extends React.Component {
@@ -178,7 +178,6 @@ const PostProduct = () => {
     setImages((prev) => prev.filter((_, i) => i !== index));
   };
 
-  // Form submission with cropped images
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -197,12 +196,17 @@ const PostProduct = () => {
 
     setUploading(true);
     try {
+      // Upload to Firebase first
+      const firebaseUrls = await uploadMultipleFiles(images, 'products');
+
       const formData = new FormData();
       formData.append('title', title);
       formData.append('description', description);
       formData.append('categoryId', categoryId);
       formData.append('price', parseFloat(price));
+      formData.append('firebaseUrls', JSON.stringify(firebaseUrls));
 
+      // Also append files for server upload (backwards compatibility)
       images.forEach((file) => {
         formData.append('productImage', file);
       });
