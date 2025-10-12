@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import axios from "axios";
 import { useLocation } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
@@ -20,94 +20,436 @@ const ChatLayout = () => {
   const [socket, setSocket] = useState(null);
   const [loading, setLoading] = useState(true);
   const [connectionError, setConnectionError] = useState(null);
+  const [isConnected, setIsConnected] = useState(false);
+  
+  // Use refs to prevent stale closures
+  const socketRef = useRef(null);
+  const reconnectTimeoutRef = useRef(null);
+  const isReconnectingRef = useRef(false);
+  const activeChatRef = useRef(null);
 
-  // Initialize socket connection with proper error handling
+  // Update activeChat ref whenever activeChat changes
   useEffect(() => {
-    if (user?.id && token) {
-      try {
-        const newSocket = io(import.meta.env.VITE_SERVER_URL || 'http://localhost:5000', {
-          auth: { token },
-          transports: ['websocket', 'polling'], // Allow fallback to polling
-          timeout: 20000,
-          forceNew: true
-        });
+    activeChatRef.current = activeChat;
+  }, [activeChat]);
 
-        newSocket.on('connect', () => {
-          console.log('Connected to server');
-          setConnectionError(null);
-          newSocket.emit('authenticate', user.id);
-        });
+  // Fetch user chats with proper error handling
+  const fetchUserChats = useCallback(async () => {
+    if (!user?.id || !token) return;
 
-        newSocket.on('connect_error', (error) => {
-          console.error('Connection error:', error);
-          setConnectionError('Failed to connect to chat server');
-        });
+    try {
+      const res = await axios.get(`${import.meta.env.VITE_SERVER_URL}/api/chats/user/${user.id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+        params: { search: searchQuery },
+      });
+      
+      const chatData = Array.isArray(res.data) ? res.data : [];
+      setChats(chatData);
+      setLoading(false);
+    } catch (error) {
+      console.error("Failed to fetch user chats", error);
+      setChats([]);
+      setLoading(false);
+    }
+  }, [user?.id, token, searchQuery]);
 
-        newSocket.on('disconnect', (reason) => {
-          console.log('Disconnected:', reason);
-          if (reason === 'io server disconnect') {
-            // Server disconnected, try to reconnect
-            newSocket.connect();
+  // Enhanced mark chat as read function
+  const handleMarkChatAsRead = useCallback((chatId) => {
+    if (!chatId || !user?.id) return;
+
+    console.log('🔖 Marking chat as read:', chatId);
+
+    // Update local state immediately
+    setChats(prevChats => 
+      prevChats.map(chat => 
+        chat.id === chatId 
+          ? { ...chat, unreadCount: 0 }
+          : chat
+      )
+    );
+
+    // Notify server via socket
+    if (socketRef.current?.connected) {
+      socketRef.current.emit('mark_chat_read', { chatId, userId: user.id });
+    }
+  }, [user?.id]);
+
+  // Handle chat select from sidebar
+  const handleChatSelect = useCallback(async (chat) => {
+    try {
+      const res = await axios.get(`${import.meta.env.VITE_SERVER_URL}/api/chats/${chat.id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+        params: { userId: user.id }
+      });
+      
+      const fullChat = res.data;
+      
+      const normalizedChat = {
+        ...fullChat,
+        messages: Array.isArray(fullChat.messages) ? fullChat.messages : []
+      };
+      
+      if (socketRef.current?.connected) {
+        socketRef.current.emit('join_chat', normalizedChat.id);
+        if (activeChatRef.current) {
+          socketRef.current.emit('leave_chat', activeChatRef.current.id);
+        }
+      }
+      
+      setActiveChat(normalizedChat);
+      
+      // Immediately mark as read when selecting chat
+      if (normalizedChat.unreadCount > 0) {
+        handleMarkChatAsRead(normalizedChat.id);
+      }
+      
+      if (isMobile) setShowMobileChat(true);
+    } catch (error) {
+      console.error("Error selecting chat:", error);
+    }
+  }, [token, user?.id, handleMarkChatAsRead, isMobile]);
+
+  // Improved socket initialization with better reconnection logic
+  const initializeSocket = useCallback(() => {
+    if (!user?.id || !token || isReconnectingRef.current) return;
+    
+    console.log('Initializing socket connection...');
+    isReconnectingRef.current = true;
+
+    try {
+      // Disconnect existing socket first
+      if (socketRef.current) {
+        socketRef.current.removeAllListeners();
+        socketRef.current.disconnect();
+        socketRef.current = null;
+      }
+
+      const newSocket = io(import.meta.env.VITE_SERVER_URL || 'http://localhost:5000', {
+        auth: { token },
+        transports: ['websocket', 'polling'],
+        timeout: 20000,
+        reconnection: true,
+        reconnectionAttempts: 5,
+        reconnectionDelay: 1000,
+        reconnectionDelayMax: 5000,
+        maxReconnectionAttempts: 5,
+        forceNew: true,
+        autoConnect: true,
+        pingTimeout: 60000,
+        pingInterval: 25000,
+      });
+
+      // Connection event handlers
+      newSocket.on('connect', () => {
+        console.log('✅ Socket connected:', newSocket.id);
+        setIsConnected(true);
+        setConnectionError(null);
+        isReconnectingRef.current = false;
+        
+        newSocket.emit('authenticate', user.id);
+        
+        if (activeChatRef.current?.id) {
+          newSocket.emit('join_chat', activeChatRef.current.id);
+        }
+      });
+
+      newSocket.on('connect_error', (error) => {
+        console.error('❌ Connection error:', error);
+        setIsConnected(false);
+        setConnectionError('Failed to connect to chat server');
+        isReconnectingRef.current = false;
+      });
+
+      newSocket.on('disconnect', (reason) => {
+        console.log('🔌 Disconnected:', reason);
+        setIsConnected(false);
+        
+        if (reason === 'io server disconnect' || reason === 'transport close') {
+          console.log('🔄 Attempting reconnection...');
+          if (reconnectTimeoutRef.current) {
+            clearTimeout(reconnectTimeoutRef.current);
           }
-        });
+          
+          reconnectTimeoutRef.current = setTimeout(() => {
+            if (!isReconnectingRef.current && user?.id && token) {
+              initializeSocket();
+            }
+          }, 2000);
+        }
+      });
 
-        newSocket.on('receive_message', (data) => {
-          if (activeChat && data.chatId === activeChat.id) {
-            setActiveChat(prev => {
-              // Ensure messages array exists
-              const currentMessages = prev?.messages || [];
+      newSocket.on('reconnect', (attemptNumber) => {
+        console.log('🔄 Reconnected after', attemptNumber, 'attempts');
+        setIsConnected(true);
+        setConnectionError(null);
+        isReconnectingRef.current = false;
+      });
+
+      newSocket.on('reconnect_attempt', (attemptNumber) => {
+        console.log('🔄 Reconnection attempt:', attemptNumber);
+      });
+
+      newSocket.on('reconnect_failed', () => {
+        console.error('❌ Reconnection failed');
+        setConnectionError('Failed to reconnect to server');
+        isReconnectingRef.current = false;
+      });
+
+      // Better message handling with proper unread count logic
+      newSocket.on('receive_message', (data) => {
+        console.log('📨 Received message:', data);
+        
+        setActiveChat(prevChat => {
+          if (prevChat && data.chatId === prevChat.id) {
+            const currentMessages = prevChat.messages || [];
+            
+            // Check for duplicates
+            const messageExists = currentMessages.some(msg => 
+              msg.id === data.message.id || 
+              (msg.text === data.message.text && Math.abs(new Date(msg.timestamp) - new Date(data.message.timestamp)) < 1000)
+            );
+            
+            if (!messageExists) {
+              // Immediately mark as read since user is viewing the chat
+              setTimeout(() => {
+                if (socketRef.current?.connected) {
+                  socketRef.current.emit('mark_chat_read', { chatId: data.chatId, userId: user.id });
+                }
+              }, 100);
+
               return {
-                ...prev,
+                ...prevChat,
                 messages: [...currentMessages, {
                   ...data.message,
                   sent: data.senderId === user.id
                 }]
               };
-            });
+            }
           }
-          // Update chat list
-          fetchUserChats();
+          return prevChat;
         });
 
-        newSocket.on('reaction_updated', (data) => {
-          if (activeChat && data.chatId === activeChat.id) {
-            setActiveChat(prev => {
-              if (!prev?.messages) return prev;
+        // Update chat list with proper unread count logic
+        setChats(prevChats => 
+          prevChats.map(chat => {
+            if (chat.id === data.chatId) {
+              // Don't increment unread count if this chat is currently active
+              const isCurrentlyActive = activeChatRef.current?.id === data.chatId;
+              const shouldIncrementUnread = data.senderId !== user.id && !isCurrentlyActive;
+              
               return {
-                ...prev,
-                messages: prev.messages.map(msg => 
-                  msg.id === data.messageId 
-                    ? { ...msg, reactions: data.reactions?.map(r => r.emoji) || [] }
-                    : msg
-                )
+                ...chat,
+                lastMessage: data.message.text,
+                timestamp: data.message.timestamp,
+                unreadCount: shouldIncrementUnread ? (chat.unreadCount || 0) + 1 : (isCurrentlyActive ? 0 : chat.unreadCount)
               };
-            });
+            }
+            return chat;
+          })
+        );
+      });
+
+      // Listen for chat marked as read events
+      newSocket.on('chat_marked_read', (data) => {
+        console.log('📖 Chat marked as read:', data);
+        setChats(prevChats => 
+          prevChats.map(chat => 
+            chat.id === data.chatId 
+              ? { ...chat, unreadCount: 0 }
+              : chat
+          )
+        );
+      });
+
+      // Better reaction handling
+      newSocket.on('reaction_updated', (data) => {
+        console.log('😄 Reaction updated:', data);
+        setActiveChat(prevChat => {
+          if (prevChat && data.chatId === prevChat.id && prevChat.messages) {
+            return {
+              ...prevChat,
+              messages: prevChat.messages.map(msg => 
+                msg.id === data.messageId 
+                  ? { 
+                      ...msg, 
+                      reactions: data.reactions?.map(r => r.emoji) || []
+                    }
+                  : msg
+              )
+            };
           }
+          return prevChat;
         });
+      });
 
-        newSocket.on('message_deleted', (data) => {
-          if (activeChat && data.chatId === activeChat.id) {
-            setActiveChat(prev => {
-              if (!prev?.messages) return prev;
-              return {
-                ...prev,
-                messages: prev.messages.filter(msg => msg.id !== data.messageId)
-              };
-            });
+      newSocket.on('message_deleted', (data) => {
+        setActiveChat(prevChat => {
+          if (prevChat && data.chatId === prevChat.id && prevChat.messages) {
+            return {
+              ...prevChat,
+              messages: prevChat.messages.filter(msg => msg.id !== data.messageId)
+            };
           }
+          return prevChat;
         });
+      });
 
-        setSocket(newSocket);
+      socketRef.current = newSocket;
+      setSocket(newSocket);
 
-        return () => {
-          newSocket.disconnect();
-        };
-      } catch (error) {
-        console.error('Socket initialization error:', error);
-        setConnectionError('Failed to initialize chat connection');
-      }
+    } catch (error) {
+      console.error('Socket initialization error:', error);
+      setConnectionError('Failed to initialize chat connection');
+      isReconnectingRef.current = false;
     }
-  }, [user, token]); // Removed activeChat from dependencies to prevent reconnection loops
+  }, [user?.id, token]);
+
+  // Handle window visibility changes
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        console.log('🔍 Window became visible');
+        
+        // Refresh active chat when window becomes visible
+        if (activeChatRef.current?.id && socketRef.current?.connected && user?.id && token) {
+          console.log('🔄 Refreshing active chat after visibility change...');
+          
+          // Refresh the active chat by re-fetching its data
+          const refreshActiveChat = async () => {
+            try {
+              const res = await axios.get(
+                `${import.meta.env.VITE_SERVER_URL}/api/chats/${activeChatRef.current.id}`,
+                {
+                  headers: { Authorization: `Bearer ${token}` },
+                  params: { userId: user.id }
+                }
+              );
+              
+              const fullChat = res.data;
+              
+              const normalizedChat = {
+                ...fullChat,
+                messages: Array.isArray(fullChat.messages) ? fullChat.messages : []
+              };
+              
+              // Re-join the chat room
+              if (socketRef.current?.connected) {
+                socketRef.current.emit('join_chat', normalizedChat.id);
+              }
+              
+              // Update active chat with fresh data
+              setActiveChat(normalizedChat);
+              
+              // Mark as read if there are unread messages
+              if (normalizedChat.unreadCount > 0) {
+                handleMarkChatAsRead(normalizedChat.id);
+              }
+              
+              console.log('✅ Active chat refreshed successfully');
+            } catch (error) {
+              console.error("❌ Error refreshing active chat:", error);
+            }
+          };
+          
+          // Small delay to ensure socket is fully reconnected
+          setTimeout(refreshActiveChat, 500);
+        }
+        
+        // Also refresh the chat list
+        fetchUserChats();
+        
+        // Reconnect socket if needed
+        if (socketRef.current && !socketRef.current.connected && user?.id && token) {
+          console.log('🔄 Reconnecting socket after visibility change...');
+          setTimeout(() => {
+            if (!isReconnectingRef.current) {
+              initializeSocket();
+            }
+          }, 1000);
+        }
+      } else {
+        console.log('👁️ Window became hidden');
+      }
+    };
+
+    const handlePageShow = (event) => {
+      console.log('📄 Page show event, persisted:', event.persisted);
+      if (event.persisted && user?.id && token) {
+        // Refresh everything when page is restored from cache
+        setTimeout(() => {
+          // Refresh active chat if exists
+          if (activeChatRef.current?.id) {
+            handleChatSelect(activeChatRef.current);
+          }
+          
+          // Refresh chat list
+          fetchUserChats();
+          
+          // Reconnect socket if needed
+          if (!socketRef.current?.connected && !isReconnectingRef.current) {
+            initializeSocket();
+          }
+        }, 1000);
+      }
+    };
+
+    const handleFocus = () => {
+      console.log('🎯 Window focused');
+      
+      // Also refresh active chat on window focus
+      if (activeChatRef.current?.id && user?.id && token) {
+        console.log('🔄 Refreshing active chat on window focus...');
+        
+        // Re-select the current chat to refresh it
+        setTimeout(() => {
+          if (activeChatRef.current) {
+            handleChatSelect(activeChatRef.current);
+          }
+        }, 300);
+      }
+      
+      // Reconnect socket if needed
+      if (socketRef.current && !socketRef.current.connected && user?.id && token) {
+        setTimeout(() => {
+          if (!isReconnectingRef.current) {
+            initializeSocket();
+          }
+        }, 500);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('pageshow', handlePageShow);
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('pageshow', handlePageShow);
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, [initializeSocket, user?.id, token, handleChatSelect, handleMarkChatAsRead, fetchUserChats]);
+
+  // Initialize socket on mount
+  useEffect(() => {
+    if (user?.id && token) {
+      initializeSocket();
+    }
+
+    return () => {
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
+      }
+      
+      if (socketRef.current) {
+        console.log('🧹 Cleaning up socket connection');
+        socketRef.current.removeAllListeners();
+        socketRef.current.disconnect();
+        socketRef.current = null;
+      }
+      
+      isReconnectingRef.current = false;
+    };
+  }, [initializeSocket]);
 
   // Responsive design handler
   useEffect(() => {
@@ -118,115 +460,16 @@ const ChatLayout = () => {
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
-  // Fetch user chats with proper error handling
-  const fetchUserChats = async () => {
-    if (!user?.id || !token) return;
-
-    try {
-      const res = await axios.get(`${import.meta.env.VITE_SERVER_URL}/api/chats/user/${user.id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-        params: { search: searchQuery },
-      });
-      
-      // Ensure we have an array
-      const chatData = Array.isArray(res.data) ? res.data : [];
-      setChats(chatData);
-      setLoading(false);
-    } catch (error) {
-      console.error("Failed to fetch user chats", error);
-      setChats([]); // Set empty array on error
-      setLoading(false);
-    }
-  };
-
+  // Fetch chats effect
   useEffect(() => {
     fetchUserChats();
-  }, [user, token, searchQuery]);
+  }, [fetchUserChats]);
 
-  // Open or create chat given participantId and optional productId
-  const openChatWithUser = async (participantId, productId = null) => {
-    if (!user?.id || !token) return;
-
-    try {
-      const res = await axios.post(`${import.meta.env.VITE_SERVER_URL}/api/chats`, {
-        participants: [user.id, participantId],
-        productId,
-        isGroup: false,
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-
-      const chat = res.data;
-      
-      // Ensure messages array exists
-      const normalizedChat = {
-        ...chat,
-        messages: Array.isArray(chat.messages) ? chat.messages : []
-      };
-      
-      if (socket) {
-        socket.emit('join_chat', chat.id);
-      }
-
-      setActiveChat(normalizedChat);
-
-      if (isMobile) {
-        setShowMobileChat(true);
-      }
-
-      fetchUserChats();
-    } catch (error) {
-      console.error("Error opening chat", error);
-    }
-  };
-
-  // Handle product chat info on mount
-  useEffect(() => {
-    if (
-      productChatInfo &&
-      productChatInfo.ownerId &&
-      productChatInfo.productId &&
-      user?.id &&
-      socket
-    ) {
-      openChatWithUser(productChatInfo.ownerId, productChatInfo.productId);
-    }
-  }, [productChatInfo, user, socket]);
-
-  // Handle chat select from sidebar
-  const handleChatSelect = async (chat) => {
-    try {
-      const res = await axios.get(`${import.meta.env.VITE_SERVER_URL}/api/chats/${chat.id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-        params: { userId: user.id }
-      });
-      
-      const fullChat = res.data;
-      
-      // Ensure messages array exists
-      const normalizedChat = {
-        ...fullChat,
-        messages: Array.isArray(fullChat.messages) ? fullChat.messages : []
-      };
-      
-      if (socket) {
-        socket.emit('join_chat', normalizedChat.id);
-        if (activeChat) {
-          socket.emit('leave_chat', activeChat.id);
-        }
-      }
-      
-      setActiveChat(normalizedChat);
-      
-      if (isMobile) setShowMobileChat(true);
-    } catch (error) {
-      console.error("Error selecting chat:", error);
-    }
-  };
-
-  // Handle sending messages with validation
   const handleSendMessage = async (messageData) => {
-    if (!activeChat || !socket) return;
+    if (!activeChat || !socketRef.current?.connected) {
+      console.warn('Cannot send message: no active chat or socket not connected');
+      return;
+    }
     
     const messagePayload = {
       chatId: activeChat.id,
@@ -234,50 +477,53 @@ const ChatLayout = () => {
       ...messageData
     };
 
-    socket.emit('send_message', messagePayload);
+    socketRef.current.emit('send_message', messagePayload);
+  };
 
-    // Optimistically update UI
-    const optimisticMessage = {
-      id: Date.now(),
-      ...messageData,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      sent: true,
-      status: 'sent'
+  const handleAddReaction = (messageId, emoji) => {
+    if (!activeChat || !socketRef.current?.connected) return;
+
+    console.log('😄 Adding reaction:', { messageId, emoji });
+
+    // Use REST API call instead of socket
+    const makeReactionRequest = async () => {
+      try {
+        await axios.post(
+          `${import.meta.env.VITE_SERVER_URL}/api/chats/${activeChat.id}/messages/${messageId}/reactions`,
+          {
+            userId: user.id,
+            emoji
+          },
+          {
+            headers: { Authorization: `Bearer ${token}` }
+          }
+        );
+      } catch (error) {
+        console.error('Failed to add reaction:', error);
+      }
     };
 
-    setActiveChat(prev => {
-      const currentMessages = prev?.messages || [];
-      return {
-        ...prev,
-        messages: [...currentMessages, optimisticMessage]
-      };
-    });
+    makeReactionRequest();
   };
 
-  // Handle adding reactions
-  const handleAddReaction = (messageId, emoji) => {
-    if (!activeChat || !socket) return;
+  const handleDeleteMessage = async (messageId) => {
+    if (!activeChat || !user?.id) return;
 
-    socket.emit('add_reaction', {
-      chatId: activeChat.id,
-      messageId,
-      userId: user.id,
-      emoji
-    });
+    try {
+      await axios.delete(
+        `${import.meta.env.VITE_SERVER_URL}/api/chats/${activeChat.id}/messages/${messageId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          data: { userId: user.id }
+        }
+      );
+      
+      console.log('Message deleted successfully');
+    } catch (error) {
+      console.error('Failed to delete message:', error);
+    }
   };
 
-  // Handle deleting messages
-  const handleDeleteMessage = (messageId) => {
-    if (!activeChat || !socket) return;
-
-    socket.emit('delete_message', {
-      chatId: activeChat.id,
-      messageId,
-      userId: user.id
-    });
-  };
-
-  // Handle deleting chats
   const handleDeleteChat = async (chatId) => {
     try {
       await axios.delete(`${import.meta.env.VITE_SERVER_URL}/api/chats/${chatId}`, {
@@ -285,8 +531,8 @@ const ChatLayout = () => {
         data: { userId: user.id }
       });
       
-      if (socket) {
-        socket.emit('leave_chat', chatId);
+      if (socketRef.current?.connected) {
+        socketRef.current.emit('leave_chat', chatId);
       }
       
       if (activeChat?.id === chatId) {
@@ -300,7 +546,6 @@ const ChatLayout = () => {
     }
   };
 
-  // Handle back to sidebar in mobile view
   const handleBackToSidebar = () => {
     setShowMobileChat(false);
     setActiveChat(null);
@@ -324,7 +569,7 @@ const ChatLayout = () => {
     );
   }
 
-  if (connectionError) {
+  if (connectionError && !isConnected) {
     return (
       <div className="flex h-screen bg-gray-100 dark:bg-[#000000] pt-16 items-center justify-center">
         <div className="text-center">
@@ -335,12 +580,23 @@ const ChatLayout = () => {
           </div>
           <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Connection Error</h3>
           <p className="text-gray-600 dark:text-gray-400 mb-4">{connectionError}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
-          >
-            Retry Connection
-          </button>
+          <div className="space-y-2">
+            <button
+              onClick={() => {
+                setConnectionError(null);
+                initializeSocket();
+              }}
+              className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors mr-2"
+            >
+              Retry Connection
+            </button>
+            <button
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
+            >
+              Reload Page
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -348,6 +604,16 @@ const ChatLayout = () => {
 
   return (
     <div className="flex h-screen bg-gray-100 dark:bg-[#000000] pt-16">
+      {/* Connection Status Indicator */}
+      {!isConnected && (
+        <div className="fixed top-20 right-4 z-50 bg-yellow-500 text-white px-4 py-2 rounded-lg shadow-lg">
+          <div className="flex items-center space-x-2">
+            <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
+            <span className="text-sm">Reconnecting...</span>
+          </div>
+        </div>
+      )}
+
       {!isMobile && (
         <>
           <div className="w-1/3 min-w-[300px] max-w-[400px]">
@@ -368,6 +634,7 @@ const ChatLayout = () => {
               onAddReaction={handleAddReaction}
               onDeleteMessage={handleDeleteMessage}
               onBackToSidebar={handleBackToSidebar}
+              onMarkChatAsRead={handleMarkChatAsRead}
               isMobile={false}
             />
           </div>
@@ -397,6 +664,7 @@ const ChatLayout = () => {
                 onAddReaction={handleAddReaction}
                 onDeleteMessage={handleDeleteMessage}
                 onBackToSidebar={handleBackToSidebar}
+                onMarkChatAsRead={handleMarkChatAsRead}
                 isMobile={true}
               />
             )}

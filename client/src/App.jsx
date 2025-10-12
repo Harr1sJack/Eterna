@@ -2,7 +2,7 @@
 import React from 'react'
 import { Routes, Route, useLocation } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast';
-import { GoogleOAuthProvider } from '@react-oauth/google'; // ✅ CORRECT IMPORT
+import { GoogleOAuthProvider } from '@react-oauth/google'; 
 
 // Your existing imports...
 import HomePage from './pages/HomePage'
@@ -21,6 +21,7 @@ import Wishlist from './pages/Wishlist';
 import FloatingDock from './components/FloatingDock';
 
 import { ThemeProvider } from './context/ThemeContext';
+import ContactPage from './pages/ContactPage';
 
 const App = () => {
   const location = useLocation();
@@ -49,6 +50,7 @@ const App = () => {
             <Route path="/register" element={<Register />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/about" element={<About />} />
+            <Route path="/contact" element={<ContactPage />} />
             <Route path="/explore" element={<Explore />} />
             <Route path='/post-product' element={<PostProduct />} />
             <Route path="/products/:id" element={<ProductDetails />} />
@@ -57,7 +59,7 @@ const App = () => {
           </Routes>
           
           {!shouldHideFooter && <Footer />}
-          <FloatingDock />
+          {!shouldHideFooter && <FloatingDock />}
         </div>
       </ThemeProvider>
     </GoogleOAuthProvider>

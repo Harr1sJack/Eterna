@@ -2,6 +2,8 @@ import User from '../models/User.js';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { deleteObject, ref } from 'firebase/storage';
+import { storage } from '../configs/firebase.js';
 
 export const getProfile = async (req, res) => {
   try {
@@ -27,6 +29,25 @@ export const updateProfile = async (req, res) => {
     if (req.file || req.body.firebaseProfileUrl) {
       const currentUser = await User.findById(req.user.id);
       
+      // Delete old Firebase image if exists
+      if (currentUser.firebaseProfilePic && 
+          currentUser.firebaseProfilePic.includes('firebase')) {
+        try {
+          // Get the file path from the URL
+          const oldFileUrl = new URL(currentUser.firebaseProfilePic);
+          const oldFilePath = decodeURIComponent(oldFileUrl.pathname.split('/o/')[1].split('?')[0]);
+          
+          // Create a reference to the file
+          const oldFileRef = ref(storage, oldFilePath);
+          
+          // Delete the file
+          await deleteObject(oldFileRef);
+          console.log('✅ Deleted old Firebase image');
+        } catch (deleteError) {
+          console.error('❌ Failed to delete old Firebase image:', deleteError);
+        }
+      }
+
       // Delete old server image if exists and not default
       if (currentUser.profilePic && 
           currentUser.profilePic !== '/profile/default.png' && 
@@ -38,9 +59,9 @@ export const updateProfile = async (req, res) => {
         if (fs.existsSync(oldImagePath)) {
           try {
             fs.unlinkSync(oldImagePath);
-            console.log('✅ Deleted old image');
+            console.log('✅ Deleted old server image');
           } catch (deleteError) {
-            console.error('❌ Failed to delete old image:', deleteError);
+            console.error('❌ Failed to delete old server image:', deleteError);
           }
         }
       }
@@ -49,7 +70,7 @@ export const updateProfile = async (req, res) => {
         // Store Firebase URL
         updates.firebaseProfilePic = req.body.firebaseProfileUrl;
         updates.profilePic = req.body.firebaseProfileUrl; // For backward compatibility
-      } else {
+      } else if (req.file) {
         // Store server path
         updates.profilePic = `uploads/profile/${req.file.filename}`;
         updates.firebaseProfilePic = ''; // Clear any existing Firebase URL

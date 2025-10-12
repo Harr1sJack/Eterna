@@ -4,6 +4,7 @@ import axios from 'axios';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
+import { uploadFile } from '../utils/firebase';
 
 const Profile = () => {
   const { user, logout, token } = useAuth();
@@ -120,21 +121,12 @@ const Profile = () => {
       return;
     }
   
-    try {
-      // Upload to Firebase first
-      const firebaseUrl = await uploadToFirebase(file, 'profiles');
-      
-      // Set the file for server upload (backwards compatibility)
-      setSelectedFileBase64(file);
-      // Show preview immediately using Firebase URL
-      setProfilePic(firebaseUrl);
-      
-    } catch (error) {
-      console.error('Error uploading image:', error);
-      toast.error('Failed to upload image');
-    }
+    // Just set the file and show local preview
+    setSelectedFileBase64(file);
+    const localPreviewUrl = URL.createObjectURL(file);
+    setProfilePic(localPreviewUrl);
   };
-
+  
   const handleSave = async () => {
     try {
       const formData = new FormData();
@@ -144,12 +136,18 @@ const Profile = () => {
       formData.append('bio', bio);
   
       if (selectedFileBase64) {
-        // Add Firebase URL to formData if we have one
-        if (profilePic.startsWith('https://')) {
-          formData.append('firebaseProfileUrl', profilePic);
+        try {
+          // Upload to Firebase when saving
+          const firebaseUrl = await uploadFile(selectedFileBase64, 'profiles');
+          formData.append('firebaseProfileUrl', firebaseUrl);
+          
+          // Also append file for server upload (backwards compatibility)
+          formData.append('profilePic', selectedFileBase64);
+        } catch (error) {
+          console.error('Firebase upload error:', error);
+          toast.error('Failed to upload image');
+          return;
         }
-        // Also append file for server upload (backwards compatibility)
-        formData.append('profilePic', selectedFileBase64);
       }
   
       const res = await axios.put(
@@ -163,12 +161,11 @@ const Profile = () => {
         }
       );
   
-      // Use Firebase URL if available, otherwise use server URL
       if (res.data.profilePic) {
-        const isFirebaseUrl = res.data.profilePic.startsWith('https://');
+        const isFirebaseUrl = res.data.firebaseProfilePic || res.data.profilePic.startsWith('https://');
         setProfilePic(
           isFirebaseUrl 
-            ? res.data.profilePic 
+            ? (res.data.firebaseProfilePic || res.data.profilePic)
             : `${import.meta.env.VITE_SERVER_URL}/${res.data.profilePic}`
         );
       }

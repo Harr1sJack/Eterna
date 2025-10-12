@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 
-const MessageBubble = ({ message, onAddReaction, onDeleteMessage, onReplyToMessage, showReactions, onToggleReactions }) => {
+const MessageBubble = ({ message, onAddReaction, onDeleteMessage, showReactions, onToggleReactions }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
@@ -110,26 +110,6 @@ const MessageBubble = ({ message, onAddReaction, onDeleteMessage, onReplyToMessa
               : 'bg-white dark:bg-[#131313] text-gray-900 dark:text-white rounded-bl-md border border-gray-200 dark:border-gray-600'
           }`}
         >
-          {/* Reply Context */}
-          {message.replyTo && (
-            <div className={`mb-2 pb-2 border-l-2 pl-3 ${
-              message.sent 
-                ? 'border-purple-300 bg-purple-500/20' 
-                : 'border-gray-300 dark:border-gray-500 bg-gray-100 dark:bg-[#000000]'
-            } rounded`}>
-              <div className={`text-xs font-medium ${
-                message.sent ? 'text-purple-200' : 'text-gray-600 dark:text-gray-300'
-              }`}>
-                {message.replyTo.senderName || 'You'}
-              </div>
-              <div className={`text-xs mt-1 ${
-                message.sent ? 'text-purple-100' : 'text-gray-500 dark:text-gray-400'
-              } truncate`}>
-                {message.replyTo.text}
-              </div>
-            </div>
-          )}
-          
           {renderMessageContent()}
 
           {/* Message timestamp and status */}
@@ -141,19 +121,12 @@ const MessageBubble = ({ message, onAddReaction, onDeleteMessage, onReplyToMessa
           </div>
         </div>
 
-        {/* Reactions */}
+        {/* Single Reaction - Top Right Corner */}
         {message.reactions && message.reactions.length > 0 && (
-          <div className="absolute -bottom-2 left-2 flex items-center space-x-1 bg-white dark:bg-[#131313] rounded-full px-2 py-1 shadow-md border border-gray-200 dark:border-gray-600">
-            {message.reactions.slice(0, 3).map((reaction, index) => (
-              <span key={index} className="text-sm">
-                {reaction}
-              </span>
-            ))}
-            {message.reactions.length > 3 && (
-              <span className="text-xs text-gray-500 dark:text-gray-400">
-                +{message.reactions.length - 3}
-              </span>
-            )}
+          <div className={`absolute -top-2 ${message.sent ? '-left-2' : '-right-2'} w-8 h-8 bg-white dark:bg-[#131313] rounded-full flex items-center justify-center shadow-lg border border-gray-200 dark:border-gray-600`}>
+            <span className="text-lg">
+              {message.reactions[0]}
+            </span>
           </div>
         )}
 
@@ -175,16 +148,6 @@ const MessageBubble = ({ message, onAddReaction, onDeleteMessage, onReplyToMessa
               </svg>
             </button>
             
-            <button 
-              onClick={() => onReplyToMessage && onReplyToMessage(message)}
-              className="p-1.5 bg-white dark:bg-[#131313] rounded-full shadow-md border border-gray-200 dark:border-gray-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors group"
-            >
-              <svg className="w-4 h-4 text-gray-600 dark:text-gray-400 group-hover:text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
-              </svg>
-            </button>
-            
-            {/* Delete Button - only show for sent messages */}
             {message.sent && (
               <button
                 onClick={() => setShowDeleteConfirm(true)}

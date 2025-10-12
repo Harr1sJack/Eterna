@@ -220,16 +220,15 @@ export const addReaction = async (req, res) => {
       return res.status(404).json({ error: "Message not found" });
     }
 
-    const existingReaction = message.reactions.find(
-      r => r.userId.toString() === userId && r.emoji === emoji
-    );
+    // CHANGED: Check if the same emoji already exists
+    const existingReaction = message.reactions.find(r => r.emoji === emoji);
 
     if (existingReaction) {
-      message.reactions = message.reactions.filter(
-        r => !(r.userId.toString() === userId && r.emoji === emoji)
-      );
+      // If same emoji exists, remove it (toggle off)
+      message.reactions = [];
     } else {
-      message.reactions.push({ userId, emoji });
+      // Replace all reactions with this single new one
+      message.reactions = [{ userId, emoji }];
     }
 
     await chat.save();

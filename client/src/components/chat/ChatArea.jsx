@@ -10,6 +10,7 @@ const ChatArea = ({
   onBackToSidebar, 
   onAddReaction,
   onDeleteMessage, 
+  onMarkChatAsRead,
   isMobile 
 }) => {
   const [message, setMessage] = useState('');
@@ -17,18 +18,31 @@ const ChatArea = ({
   const [isTyping, setIsTyping] = useState(false);
   const [showReactions, setShowReactions] = useState(null);
   const [replyToMessage, setReplyToMessage] = useState(null);
+  const [isSending, setIsSending] = useState(false); // FIXED: Add sending state
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
-  // Auto scroll to bottom
+  // Auto scroll to bottom when messages change
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [activeChat?.messages]);
+    if (activeChat?.messages && messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [activeChat?.messages?.length]); // Only depend on length
 
-  // Handle message sending
-  const handleSendMessage = (e) => {
+  // FIXED: Mark chat as read when opening (only once per chat)
+  useEffect(() => {
+    if (activeChat?.id && activeChat.unreadCount > 0 && onMarkChatAsRead) {
+      onMarkChatAsRead(activeChat.id);
+    }
+  }, [activeChat?.id]); // Only depend on chat ID
+
+  // FIXED: Handle message sending with proper debouncing
+  const handleSendMessage = async (e) => {
     e.preventDefault();
-    if (message.trim()) {
+    
+    if (message.trim() && !isSending && activeChat) {
+      setIsSending(true);
+      
       const newMessage = { 
         text: message.trim(), 
         type: 'text',
@@ -40,10 +54,20 @@ const ChatArea = ({
           }
         })
       };
-      onSendMessage(newMessage);
-      setMessage('');
-      setReplyToMessage(null);
-      setShowEmojiPicker(false);
+      
+      try {
+        await onSendMessage(newMessage);
+        setMessage('');
+        setReplyToMessage(null);
+        setShowEmojiPicker(false);
+      } catch (error) {
+        console.error('Failed to send message:', error);
+      } finally {
+        // Reset sending state after a short delay
+        setTimeout(() => {
+          setIsSending(false);
+        }, 500);
+      }
     }
   };
 
@@ -61,7 +85,10 @@ const ChatArea = ({
   // Handle emoji selection
   const handleEmojiSelect = (emoji) => {
     setMessage(prev => prev + emoji);
-    inputRef.current?.focus();
+    setShowEmojiPicker(false);
+    setTimeout(() => {
+      inputRef.current?.focus();
+    }, 100);
   };
 
   // Handle typing simulation
@@ -70,30 +97,24 @@ const ChatArea = ({
       setIsTyping(true);
       const timer = setTimeout(() => setIsTyping(false), 1000);
       return () => clearTimeout(timer);
+    } else {
+      setIsTyping(false);
     }
   }, [message]);
 
-  // Handle file upload
-  const handleFileUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      onSendMessage({
-        text: `📎 ${file.name}`,
-        type: 'file',
-        fileName: file.name,
-        fileSize: file.size
-      });
-    }
-  };
+  // Close emoji picker when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showEmojiPicker && !event.target.closest('.emoji-picker-container') && !event.target.closest('.emoji-button')) {
+        setShowEmojiPicker(false);
+      }
+    };
 
-  // Handle voice message (simulation)
-  const handleVoiceMessage = () => {
-    onSendMessage({
-      text: 'Voice message',
-      type: 'voice',
-      duration: '0:' + (Math.floor(Math.random() * 59) + 1).toString().padStart(2, '0')
-    });
-  };
+    if (showEmojiPicker) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [showEmojiPicker]);
 
   if (!activeChat) {
     return (
@@ -110,9 +131,9 @@ const ChatArea = ({
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-white dark:bg-[#000000] relative">
+    <div className="flex-1 flex flex-col bg-white dark:bg-[#000000] relative h-full">
       {/* Chat Header */}
-      <div className="flex items-center justify-between p-4 bg-white dark:bg-[#131313] border-b border-gray-200 dark:border-gray-600 shadow-sm">
+      <div className="flex items-center justify-between p-4 bg-white dark:bg-[#131313] border-b border-gray-200 dark:border-gray-600 shadow-sm flex-shrink-0">
         <div className="flex items-center space-x-3">
           {isMobile && (
             <button
@@ -152,114 +173,109 @@ const ChatArea = ({
 
       {/* Messages Area */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 dark:bg-[#000000] pb-24">
-        <AnimatePresence>
-          {activeChat.messages?.map((msg, index) => (
-            <MessageBubble
-              key={msg.id}
-              message={msg}
-              onAddReaction={(emoji) => onAddReaction(msg.id, emoji)}
-              onDeleteMessage={onDeleteMessage}
-              onReplyToMessage={handleReplyToMessage}
-              showReactions={showReactions === msg.id}
-              onToggleReactions={() => setShowReactions(showReactions === msg.id ? null : msg.id)}
-            />
-          ))}
-        </AnimatePresence>
+        {activeChat.messages && activeChat.messages.length > 0 ? (
+          <>
+            <AnimatePresence>
+              {activeChat.messages.map((msg, index) => (
+                <MessageBubble
+                  key={msg.id || `msg-${index}`}
+                  message={msg}
+                  onAddReaction={(emoji) => onAddReaction(msg.id, emoji)}
+                  onDeleteMessage={onDeleteMessage}
+                  onReplyToMessage={handleReplyToMessage}
+                  showReactions={showReactions === msg.id}
+                  onToggleReactions={() => setShowReactions(showReactions === msg.id ? null : msg.id)}
+                />
+              ))}
+            </AnimatePresence>
 
-        {/* Typing Indicator */}
-        {isTyping && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400"
-          >
-            <div className="flex space-x-1">
-              <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-              <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-              <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-            </div>
-            <span>You are typing...</span>
-          </motion.div>
+            {/* Typing Indicator - Removed "You are typing" */}
+            {/* Only show typing indicator for other users in header */}
+          </>
+        ) : (
+          <div className="flex items-center justify-center h-full text-gray-500 dark:text-gray-400">
+            <p className="text-sm">No messages yet. Start the conversation!</p>
+          </div>
         )}
 
         <div ref={messagesEndRef} />
       </div>
 
       {/* Message Input */}
-      <div className="fixed bottom-20 left-0 right-0 md:left-[300px] lg:left-[340px] xl:left-[400px] p-4 bg-white dark:bg-[#131313] border-t border-gray-200 dark:border-gray-600 z-10">
+      <div className="absolute bottom-0 left-0 right-0 bg-white dark:bg-[#131313] border-t border-gray-200 dark:border-gray-600 px-4 py-3 z-10">
         {/* Reply Preview */}
-        {replyToMessage && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="mb-3 p-3 bg-gray-100 dark:bg-[#000000] rounded-lg border-l-4 border-purple-500"
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <div className="text-xs font-medium text-purple-600 dark:text-purple-400 mb-1">
-                  Replying to {replyToMessage.sent ? 'yourself' : activeChat.name}
-                </div>
-                <div className="text-sm text-gray-600 dark:text-gray-300 truncate">
-                  {replyToMessage.text}
-                </div>
-              </div>
-              <button
-                onClick={handleCancelReply}
-                className="ml-2 p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-          </motion.div>
-        )}
-        
-        <form onSubmit={handleSendMessage} className="flex items-end space-x-2 ml-1">
-          {/* Attachment Button */}
-          <div className="relative">
-            <input
-              type="file"
-              id="file-upload"
-              className="hidden"
-              onChange={handleFileUpload}
-              accept="image/*,video/*,audio/*,.pdf,.doc,.docx"
-            />
-            <label
-              htmlFor="file-upload"
-              className="flex items-center justify-center w-10 h-10 text-gray-500 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 cursor-pointer transition-colors"
+        <AnimatePresence>
+          {replyToMessage && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="mb-3 p-3 bg-gray-100 dark:bg-[#000000] rounded-lg border-l-4 border-purple-500"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
-              </svg>
-            </label>
-          </div>
-
-          {/* Message Input */}
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <div className="text-xs font-medium text-purple-600 dark:text-purple-400 mb-1">
+                    Replying to {replyToMessage.sent ? 'yourself' : activeChat.name}
+                  </div>
+                  <div className="text-sm text-gray-600 dark:text-gray-300 truncate">
+                    {replyToMessage.text}
+                  </div>
+                </div>
+                <button
+                  onClick={handleCancelReply}
+                  className="ml-2 p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+        
+        {/* Form */}
+        <form onSubmit={handleSendMessage} className="flex items-center space-x-3">
           <div className="flex-1 relative">
             <textarea
               ref={inputRef}
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               placeholder="Type a message..."
-              className="w-full px-4 py-3 pr-12 bg-gray-100 dark:bg-[#000000] border-0 rounded-lg resize-none text-sm text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:outline-none h-12 overflow-y-auto"
+              className="w-full px-4 py-2.5 pr-12 bg-gray-100 dark:bg-[#000000] border-0 rounded-xl resize-none text-sm text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:outline-none h-[44px] leading-5 overflow-hidden"
               rows="1"
-              style={{ height: '48px', minHeight: '48px', maxHeight: '48px' }}
+              disabled={isSending} // FIXED: Disable during sending
+              style={{
+                minHeight: '44px',
+                maxHeight: '120px',
+                scrollbarWidth: 'none',
+                msOverflowStyle: 'none'
+              }}
+              onInput={(e) => {
+                e.target.style.height = '44px';
+                e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px';
+              }}
               onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
+                if (e.key === 'Enter' && !e.shiftKey && !isSending) {
                   e.preventDefault();
                   handleSendMessage(e);
                 }
               }}
             />
             
-            {/* Emoji Button */}
             <button
               type="button"
-              onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
+              className={`emoji-button absolute right-3 top-1/2 transform -translate-y-1/2 transition-colors ${
+                showEmojiPicker 
+                  ? 'text-purple-600 dark:text-purple-400' 
+                  : 'text-gray-500 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400'
+              }`}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setShowEmojiPicker(!showEmojiPicker);
+              }}
+              disabled={isSending}
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -267,36 +283,25 @@ const ChatArea = ({
             </button>
           </div>
 
-          {/* Voice Message Button */}
-          <button
-            type="button"
-            onClick={handleVoiceMessage}
-            className="flex items-center justify-center w-10 h-10 text-gray-500 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-            </svg>
-          </button>
-
-          {/* Animated Send Button */}
-          <AnimatedSendButton
-            onClick={async () => {
-              if (message.trim()) {
-                handleSendMessage({ preventDefault: () => {} });
-              }
-            }}
-            disabled={!message.trim()}
-          />
+          <div className="flex-shrink-0">
+            <AnimatedSendButton
+              onClick={async () => {
+                if (message.trim() && !isSending) {
+                  await handleSendMessage({ preventDefault: () => {} });
+                }
+              }}
+              disabled={!message.trim() || isSending} // FIXED: Disable during sending
+            />
+          </div>
         </form>
 
-        {/* Emoji Picker */}
         <AnimatePresence>
           {showEmojiPicker && (
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 10 }}
-              className="absolute bottom-20 right-4 z-50"
+              className="absolute bottom-full right-4 mb-2 z-50 emoji-picker-container"
             >
               <EmojiPicker onEmojiSelect={handleEmojiSelect} />
             </motion.div>

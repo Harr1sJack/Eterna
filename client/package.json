@@ -16,6 +16,7 @@
     "clsx": "^2.1.1",
     "cors": "^2.8.5",
     "daisyui": "^4.12.24",
+    "date-fns": "^4.1.0",
     "firebase": "^12.3.0",
     "framer-motion": "^12.23.16",
     "jwt-decode": "^4.0.0",

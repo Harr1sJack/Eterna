@@ -1,138 +1,53 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
 
 const EmojiPicker = ({ onEmojiSelect }) => {
-  const [activeCategory, setActiveCategory] = useState('smileys');
+  const emojis = [
+    '😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇',
+    '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚',
+    '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🤩',
+    '🥳', '😏', '😒', '😞', '😔', '😟', '😕', '🙁', '☹️', '😣',
+    '😖', '😫', '😩', '🥺', '😢', '😭', '😤', '😠', '😡', '🤬',
+    '🤯', '😳', '🥵', '🥶', '😱', '😨', '😰', '😥', '😓', '🤗',
+    '🤔', '🤭', '🤫', '🤥', '😶', '😐', '😑', '😬', '🙄', '😯',
+    '👍', '👎', '👌', '✋', '🤚', '🖐', '✌️', '🤞', '🤟', '🤘',
+    '🤙', '👈', '👉', '👆', '🖕', '👇', '☝️', '👏', '🙌', '👐',
+    '🔥', '💯', '💢', '💥', '💫', '💦', '💨', '🕳', '💣', '💬',
+    '❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💔'
+  ];
 
-  const emojiCategories = {
-    smileys: {
-      name: 'Smileys & People',
-      icon: '😀',
-      emojis: [
-        '😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇',
-        '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚',
-        '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🤩',
-        '🥳', '😏', '😒', '😞', '😔', '😟', '😕', '🙁', '☹️', '😣',
-        '😖', '😫', '😩', '🥺', '😢', '😭', '😤', '😠', '😡', '🤬',
-        '🤯', '😳', '🥵', '🥶', '😱', '😨', '😰', '😥', '😓', '🤗'
-      ]
-    },
-    nature: {
-      name: 'Animals & Nature',
-      icon: '🐶',
-      emojis: [
-        '🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🐨', '🐯',
-        '🦁', '🐮', '🐷', '🐽', '🐸', '🐵', '🙈', '🙉', '🙊', '🐒',
-        '🐔', '🐧', '🐦', '🐤', '🐣', '🐥', '🦆', '🦅', '🦉', '🦇',
-        '🐺', '🐗', '🐴', '🦄', '🐝', '🐛', '🦋', '🐌', '🐞', '🐜',
-        '🌸', '💐', '🌹', '🥀', '🌺', '🌻', '🌼', '🌷', '🌱', '🌲'
-      ]
-    },
-    food: {
-      name: 'Food & Drink',
-      icon: '🍕',
-      emojis: [
-        '🍎', '🍊', '🍋', '🍌', '🍉', '🍇', '🍓', '🍈', '🍒', '🍑',
-        '🥭', '🍍', '🥥', '🥝', '🍅', '🍆', '🥑', '🥦', '🥒', '🌶️',
-        '🌽', '🥕', '🧄', '🧅', '🥔', '🍠', '🥐', '🍞', '🥖', '🥨',
-        '🧀', '🥚', '🍳', '🧈', '🥞', '🧇', '🥓', '🥩', '🍗', '🍖',
-        '🌭', '🍔', '🍟', '🍕', '🥪', '🥙', '🌮', '🌯', '🥗', '🥘'
-      ]
-    },
-    activities: {
-      name: 'Activities',
-      icon: '⚽',
-      emojis: [
-        '⚽', '🏀', '🏈', '⚾', '🥎', '🎾', '🏐', '🏉', '🥏', '🎱',
-        '🪀', '🏓', '🏸', '🏒', '🏑', '🥍', '🏏', '🪃', '🥅', '⛳',
-        '🪁', '🏹', '🎣', '🤿', '🥊', '🥋', '🎽', '🛹', '🛷', '⛸️',
-        '🥌', '🎿', '⛷️', '🏂', '🪂', '🏋️', '🤼', '🤸', '⛹️', '🤺',
-        '🏊', '🏄', '🧘', '🏃', '🚶', '🧗', '🤾', '🏌️', '🏇', '🧘'
-      ]
-    },
-    objects: {
-      name: 'Objects',
-      icon: '💻',
-      emojis: [
-        '💻', '🖥️', '🖨️', '⌨️', '🖱️', '🖲️', '💽', '💾', '💿', '📀',
-        '☎️', '📞', '📟', '📠', '📡', '📢', '📣', '📻', '🎵', '🎶',
-        '🎤', '🎧', '📺', '📷', '📸', '📹', '📼', '🔍', '🔎', '💡',
-        '🔦', '🏮', '📔', '📕', '📖', '📗', '📘', '📙', '📚', '📓',
-        '📒', '📃', '📜', '📄', '📰', '📑', '🔖', '💰', '💴', '💵'
-      ]
-    },
-    symbols: {
-      name: 'Symbols',
-      icon: '❤️',
-      emojis: [
-        '❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💔',
-        '❣️', '💕', '💞', '💓', '💗', '💖', '💘', '💝', '💟', '☮️',
-        '✝️', '☪️', '🕉️', '☸️', '✡️', '🔯', '🕎', '☯️', '☦️', '🛐',
-        '⭐', '🌟', '✨', '⚡', '☄️', '💥', '🔥', '🌈', '☀️', '🌤️',
-        '⛅', '🌥️', '☁️', '🌦️', '🌧️', '⛈️', '🌩️', '🌨️', '❄️', '☃️'
-      ]
-    }
+  const categories = {
+    'Smileys': emojis.slice(0, 30),
+    'Gestures': emojis.slice(30, 50),
+    'Symbols': emojis.slice(50, 60),
+    'Hearts': emojis.slice(60, 70)
   };
 
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.9 }}
-      className="bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 w-80 max-h-96 overflow-hidden"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="bg-white dark:bg-[#131313] rounded-xl shadow-xl border border-gray-200 dark:border-gray-600 p-4 w-80 max-h-96 overflow-y-auto"
     >
-      {/* Category Tabs */}
-      <div className="flex items-center justify-between p-2 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700">
-        {Object.entries(emojiCategories).map(([key, category]) => (
-          <button
-            key={key}
-            onClick={() => setActiveCategory(key)}
-            className={`p-2 rounded-lg transition-colors ${
-              activeCategory === key
-                ? 'bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-400'
-                : 'hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-400'
-            }`}
-            title={category.name}
-          >
-            <span className="text-lg">{category.icon}</span>
-          </button>
-        ))}
-      </div>
-
-      {/* Emoji Grid */}
-      <div className="p-3 h-64 overflow-y-auto">
-        <div className="grid grid-cols-8 gap-1">
-          {emojiCategories[activeCategory].emojis.map((emoji, index) => (
-            <button
-              key={index}
-              onClick={() => onEmojiSelect(emoji)}
-              className="p-2 text-xl hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors hover:scale-110 transform"
-            >
-              {emoji}
-            </button>
-          ))}
+      {Object.entries(categories).map(([category, categoryEmojis]) => (
+        <div key={category} className="mb-4">
+          <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wide">
+            {category}
+          </h3>
+          <div className="grid grid-cols-8 gap-2">
+            {categoryEmojis.map((emoji, index) => (
+              <button
+                key={`${category}-${index}`}
+                onClick={() => onEmojiSelect(emoji)}
+                className="w-8 h-8 flex items-center justify-center text-lg hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                type="button"
+              >
+                {emoji}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
-
-      {/* Recent Emojis */}
-      <div className="p-3 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            Frequently Used
-          </span>
-        </div>
-        <div className="flex items-center space-x-1">
-          {['😀', '😂', '❤️', '👍', '🔥', '🎉', '💯', '✨'].map((emoji, index) => (
-            <button
-              key={index}
-              onClick={() => onEmojiSelect(emoji)}
-              className="p-1.5 text-lg hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors hover:scale-110 transform"
-            >
-              {emoji}
-            </button>
-          ))}
-        </div>
-      </div>
+      ))}
     </motion.div>
   );
 };
