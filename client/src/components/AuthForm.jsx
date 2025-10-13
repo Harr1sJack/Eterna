@@ -12,6 +12,14 @@ const AuthForm = ({ mode }) => {
   const { theme } = useTheme();
   const [form, setForm] = useState({ name: '', email: '', password: '' });
   const [loading, setLoading] = useState(false);
+  const [emailError, setEmailError] = useState('');
+  const [nameError, setNameError] = useState('');
+
+  // Email validation regex - RFC 5322 compliant pattern
+  const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+  
+  // Name validation regex - only alphabets and spaces
+  const nameRegex = /^[A-Za-z\s]+$/;
 
   useEffect(() => {
     const intervalId = setInterval(() => {
@@ -22,20 +30,94 @@ const AuthForm = ({ mode }) => {
     return () => clearInterval(intervalId);
   }, [theme]);
 
+  const validateEmail = (email) => {
+    if (!email) {
+      return 'Email is required';
+    }
+    if (!emailRegex.test(email)) {
+      return 'Please enter a valid email address';
+    }
+    return '';
+  };
+
+  const validateName = (name) => {
+    if (!name) {
+      return 'Name is required';
+    }
+    if (!nameRegex.test(name.trim())) {
+      return 'Name should contain only letters and spaces';
+    }
+    if (name.trim().length < 2) {
+      return 'Name should be at least 2 characters long';
+    }
+    return '';
+  };
+
   const handleChange = (e) => {
-    setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
+    const { name, value } = e.target;
+    setForm(prev => ({ ...prev, [name]: value }));
+
+    // Real-time email validation
+    if (name === 'email') {
+      const error = validateEmail(value);
+      setEmailError(error);
+    }
+
+    // Real-time name validation for register mode
+    if (name === 'name' && mode === 'register') {
+      const error = validateName(value);
+      setNameError(error);
+    }
+  };
+
+  const handleEmailBlur = () => {
+    // Validate email on blur for better UX
+    const error = validateEmail(form.email);
+    setEmailError(error);
+  };
+
+  const handleNameBlur = () => {
+    // Validate name on blur for register mode
+    if (mode === 'register') {
+      const error = validateName(form.name);
+      setNameError(error);
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (loading) return;
+
+    // Validate email before submission
+    const emailValidationError = validateEmail(form.email);
+    if (emailValidationError) {
+      setEmailError(emailValidationError);
+      toast.error('Please fix the email address');
+      return;
+    }
+
+    // Additional validation for name in register mode
+    if (mode === 'register') {
+      const nameValidationError = validateName(form.name);
+      if (nameValidationError) {
+        setNameError(nameValidationError);
+        toast.error('Please enter a valid name');
+        return;
+      }
+    }
+
+    if (!form.password.trim()) {
+      toast.error('Please enter your password');
+      return;
+    }
+
     setLoading(true);
 
     try {
       if (mode === 'signin') {
         // Admin login check
         if (form.email === "admin@gmail.com" && form.password === "admin123") {
-          navigate("/admin");
+          navigate("/qpdvimeg7354920pdhe7812");
           return;
         }
 
@@ -145,39 +227,63 @@ const AuthForm = ({ mode }) => {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="mt-5">
-          {/* Name field for register */}
+          {/* Name field for register with validation */}
           {mode === 'register' && (
+            <div className="mt-4">
+              <input
+                type="text"
+                name="name"
+                placeholder="Full Name"
+                value={form.name}
+                onChange={handleChange}
+                onBlur={handleNameBlur}
+                required
+                disabled={loading}
+                className={`w-full p-4 rounded-[20px] border-2 transition-all duration-200 outline-none ${
+                  nameError 
+                    ? 'border-red-500 shadow-red-500/30 shadow-lg' 
+                    : 'border-transparent'
+                } ${
+                  theme === 'dark' 
+                    ? 'bg-gray-900 text-white placeholder-gray-400 shadow-purple-500/30 shadow-lg focus:border-purple-500' 
+                    : 'bg-white text-black placeholder-gray-400 shadow-cyan-200 shadow-lg focus:border-blue-500'
+                } ${loading ? 'opacity-60 cursor-not-allowed' : ''}`}
+              />
+              {nameError && (
+                <p className="text-red-500 text-xs mt-1 ml-1">
+                  {nameError}
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* Email field with validation */}
+          <div className="mt-4">
             <input
-              type="text"
-              name="name"
-              placeholder="Full Name"
-              value={form.name}
+              type="email"
+              name="email"
+              placeholder="E-mail"
+              value={form.email}
               onChange={handleChange}
+              onBlur={handleEmailBlur}
               required
               disabled={loading}
-              className={`w-full p-4 rounded-[20px] mt-4 border-2 border-transparent transition-all duration-200 outline-none ${
+              className={`w-full p-4 rounded-[20px] border-2 transition-all duration-200 outline-none ${
+                emailError 
+                  ? 'border-red-500 shadow-red-500/30 shadow-lg' 
+                  : 'border-transparent'
+              } ${
                 theme === 'dark' 
                   ? 'bg-gray-900 text-white placeholder-gray-400 shadow-purple-500/30 shadow-lg focus:border-purple-500' 
                   : 'bg-white text-black placeholder-gray-400 shadow-cyan-200 shadow-lg focus:border-blue-500'
               } ${loading ? 'opacity-60 cursor-not-allowed' : ''}`}
             />
-          )}
-
-          {/* Email field */}
-          <input
-            type="email"
-            name="email"
-            placeholder="E-mail"
-            value={form.email}
-            onChange={handleChange}
-            required
-            disabled={loading}
-            className={`w-full p-4 rounded-[20px] mt-4 border-2 border-transparent transition-all duration-200 outline-none ${
-              theme === 'dark' 
-                ? 'bg-gray-900 text-white placeholder-gray-400 shadow-purple-500/30 shadow-lg focus:border-purple-500' 
-                : 'bg-white text-black placeholder-gray-400 shadow-cyan-200 shadow-lg focus:border-blue-500'
-            } ${loading ? 'opacity-60 cursor-not-allowed' : ''}`}
-          />
+            {emailError && (
+              <p className="text-red-500 text-xs mt-1 ml-1">
+                {emailError}
+              </p>
+            )}
+          </div>
 
           {/* Password field */}
           <input
@@ -199,16 +305,16 @@ const AuthForm = ({ mode }) => {
           <input
             type="submit"
             value={loading ? (mode === 'signin' ? 'Signing in...' : 'Signing up...') : (mode === 'signin' ? 'Sign In' : 'Sign Up')}
-            disabled={loading}
+            disabled={loading || emailError || (mode === 'register' && nameError)}
             className={`w-full py-4 mt-5 rounded-[20px] text-white font-bold transition-all duration-200 cursor-pointer ${
               theme === 'dark'
                 ? 'bg-gradient-to-r from-purple-600 to-purple-500 shadow-purple-500/40 shadow-xl hover:scale-105 hover:shadow-purple-500/50 active:scale-95 active:shadow-purple-500/30'
                 : 'bg-gradient-to-r from-blue-600 to-cyan-500 shadow-cyan-400/60 shadow-xl hover:scale-105 hover:shadow-cyan-400/70 active:scale-95 active:shadow-cyan-400/50'
-            } ${loading ? 'opacity-60 cursor-not-allowed transform-none' : ''}`}
+            } ${loading || emailError || (mode === 'register' && nameError) ? 'opacity-60 cursor-not-allowed transform-none' : ''}`}
           />
         </form>
 
-        {/* ✅ FIXED: Google OAuth Section */}
+        {/* Google OAuth Section */}
         <div className="mt-6">
           <div className="flex items-center gap-4 mb-4">
             <hr className={`flex-1 ${theme === 'dark' ? 'border-gray-600' : 'border-gray-300'}`} />
@@ -220,7 +326,7 @@ const AuthForm = ({ mode }) => {
           
           {/* Google Login Button */}
           <div className="w-full flex justify-center">
-            <div className="w-full max-w-xs">
+            <div className="w-full max-w-xs relative">
               <GoogleLogin 
                 onSuccess={handleGoogleSuccess} 
                 onError={handleGoogleError} 
@@ -231,15 +337,15 @@ const AuthForm = ({ mode }) => {
                 width={320}
                 disabled={loading}
               />
+
+              {/* Loading overlay for Google button */}
+              {loading && (
+                <div className="absolute inset-0 bg-black bg-opacity-50 rounded-[20px] flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+                </div>
+              )}
             </div>
           </div>
-
-          {/* Loading overlay for Google button */}
-          {loading && (
-            <div className="absolute inset-0 bg-black bg-opacity-50 rounded-[20px] flex items-center justify-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
-            </div>
-          )}
         </div>
 
         {/* Terms notice for register */}

@@ -25,18 +25,27 @@ const ContactPage = () => {
     setSubmitStatus(null);
 
     try {
-      // Here you would typically send the form data to your backend
-      // For now, we'll simulate a successful submission
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
-
-      setSubmitStatus('success');
-      setFormData({
-        name: '',
-        email: '',
-        subject: '',
-        message: ''
+      // Send to your backend API
+      const response = await axios.post(`${import.meta.env.VITE_SERVER_URL}/api/contact`, {
+        name: formData.name,
+        email: formData.email,
+        subject: formData.subject,
+        message: formData.message
       });
+
+      if (response.data.success) {
+        setSubmitStatus('success');
+        setFormData({
+          name: '',
+          email: '',
+          subject: '',
+          message: ''
+        });
+      } else {
+        setSubmitStatus('error');
+      }
     } catch (error) {
+      console.error('Contact form error:', error);
       setSubmitStatus('error');
     } finally {
       setIsSubmitting(false);
@@ -67,8 +76,7 @@ const ContactPage = () => {
               Get In Touch
             </h1>
             <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto leading-relaxed">
-              Have questions about Eterna? Want to collaborate or share feedback?
-              We'd love to hear from you.
+              Have questions about Eterna? Want to collaborate or share feedback? We'd love to hear from you.
             </p>
           </div>
 
@@ -172,7 +180,7 @@ const ContactPage = () => {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7"></path>
                       </svg>
                       <p className="text-green-800 dark:text-green-200 font-medium">
-                        Message sent successfully! We'll get back to you soon.
+                        Message sent successfully! We'll get back to you within 24 hours.
                       </p>
                     </div>
                   </div>
@@ -185,7 +193,7 @@ const ContactPage = () => {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"></path>
                       </svg>
                       <p className="text-red-800 dark:text-red-200 font-medium">
-                        Failed to send message. Please try again or contact us directly.
+                        Failed to send message. Please try again or email us directly at support@eterna.com
                       </p>
                     </div>
                   </div>
@@ -193,140 +201,74 @@ const ContactPage = () => {
               </form>
             </div>
 
-            {/* Contact Information */}
-            <div className="space-y-8">
-
-              {/* Contact Cards */}
-              <div className="space-y-6">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                  Contact Information
-                </h2>
-
-                <div className="space-y-4">
-                  <div className="bg-white dark:bg-[#131313] rounded-xl p-6 border border-gray-200 dark:border-gray-700">
-                    <div className="flex items-start space-x-4">
-                      <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <svg className="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
-                        </svg>
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-gray-900 dark:text-white mb-1">
-                          Email Us
-                        </h3>
-                        <p className="text-gray-600 dark:text-gray-300 mb-2">
-                          Send us an email and we'll respond within 24 hours.
-                        </p>
-                        <a
-                          href="mailto:hello@eterna.com"
-                          className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium"
-                        >
-                          hello@eterna.com
-                        </a>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="bg-white dark:bg-[#131313] rounded-xl p-6 border border-gray-200 dark:border-gray-700">
-                    <div className="flex items-start space-x-4">
-                      <div className="w-12 h-12 bg-green-100 dark:bg-green-900 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <svg className="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
-                        </svg>
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-gray-900 dark:text-white mb-1">
-                          Live Chat
-                        </h3>
-                        <p className="text-gray-600 dark:text-gray-300 mb-2">
-                          Chat with our support team for instant help.
-                        </p>
-                        <button className="text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 font-medium">
-                          Start Chat
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="bg-white dark:bg-[#131313] rounded-xl p-6 border border-gray-200 dark:border-gray-700">
-                    <div className="flex items-start space-x-4">
-                      <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <svg className="w-6 h-6 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
-                        </svg>
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-gray-900 dark:text-white mb-1">
-                          Documentation
-                        </h3>
-                        <p className="text-gray-600 dark:text-gray-300 mb-2">
-                          Find answers in our comprehensive help center.
-                        </p>
-                        <a
-                          href="#"
-                          className="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-medium"
-                        >
-                          View Docs
-                        </a>
-                      </div>
-                    </div>
-                  </div>
+            {/* FAQ Section */}
+            <div className="bg-gray-50 dark:bg-[#131313] rounded-2xl p-8">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6">
+                Frequently Asked Questions
+              </h3>
+              <div className="space-y-4">
+                <div>
+                  <h4 className="font-semibold text-gray-900 dark:text-white mb-2">
+                    How do I list an item for sale?
+                  </h4>
+                  <p className="text-gray-600 dark:text-gray-300 text-sm">
+                    Create an account, go to "Post Product" and fill in the details. Your item will be reviewed before going live.
+                  </p>
                 </div>
-              </div>
-
-              {/* FAQ Section */}
-              <div className="bg-gray-50 dark:bg-[#131313] rounded-2xl p-8">
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6">
-                  Frequently Asked Questions
-                </h3>
-                <div className="space-y-4">
-                  <div>
-                    <h4 className="font-semibold text-gray-900 dark:text-white mb-2">
-                      How do I list an item for sale?
-                    </h4>
-                    <p className="text-gray-600 dark:text-gray-300 text-sm">
-                      Create an account, go to "Post Product" and fill in the details. Your item will be reviewed before going live.
-                    </p>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-900 dark:text-white mb-2">
-                      Is Eterna free to use?
-                    </h4>
-                    <p className="text-gray-600 dark:text-gray-300 text-sm">
-                      Yes! Eterna is completely free for both buyers and sellers. No hidden fees or commissions.
-                    </p>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-900 dark:text-white mb-2">
-                      How does the verification process work?
-                    </h4>
-                    <p className="text-gray-600 dark:text-gray-300 text-sm">
-                      All users go through a verification process to ensure a safe and trustworthy marketplace.
-                    </p>
-                  </div>
+                <div>
+                  <h4 className="font-semibold text-gray-900 dark:text-white mb-2">
+                    Is Eterna free to use?
+                  </h4>
+                  <p className="text-gray-600 dark:text-gray-300 text-sm">
+                    Yes! Eterna is completely free for both buyers and sellers. No hidden fees or commissions.
+                  </p>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-900 dark:text-white mb-2">
+                    How does verification work?
+                  </h4>
+                  <p className="text-gray-600 dark:text-gray-300 text-sm">
+                    All users go through verification to ensure a safe and trustworthy marketplace.
+                  </p>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-900 dark:text-white mb-2">
+                    Can I negotiate prices?
+                  </h4>
+                  <p className="text-gray-600 dark:text-gray-300 text-sm">
+                    Yes! Use our chat feature to discuss prices and arrange payment methods directly with sellers.
+                  </p>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-900 dark:text-white mb-2">
+                    What payment methods are supported?
+                  </h4>
+                  <p className="text-gray-600 dark:text-gray-300 text-sm">
+                    Payment arrangements are made directly between buyers and sellers including cash, bank transfers, and digital payments.
+                  </p>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Business Hours */}
-          <div className="bg-white dark:bg-[#131313] rounded-2xl p-8 border border-gray-200 dark:border-gray-700">
+          {/* Support Information */}
+          <div className="bg-white dark:bg-[#131313] rounded-2xl p-8 border border-gray-200 dark:border-gray-700 mb-16">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 text-center">
-              Business Hours
+              Support Information
             </h2>
             <div className="grid md:grid-cols-2 gap-8">
               <div>
                 <h3 className="font-semibold text-gray-900 dark:text-white mb-4">
-                  Support Hours
+                  Business Hours
                 </h3>
                 <div className="space-y-2 text-gray-600 dark:text-gray-300">
                   <div className="flex justify-between">
                     <span>Monday - Friday</span>
-                    <span>9:00 AM - 6:00 PM</span>
+                    <span>9:00 AM - 6:00 PM IST</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Saturday</span>
-                    <span>10:00 AM - 4:00 PM</span>
+                    <span>10:00 AM - 4:00 PM IST</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Sunday</span>
@@ -338,20 +280,57 @@ const ContactPage = () => {
                 <h3 className="font-semibold text-gray-900 dark:text-white mb-4">
                   Response Time
                 </h3>
-                <div className="space-y-2 text-gray-600 dark:text-gray-300">
-                  <div className="flex justify-between">
-                    <span>Email</span>
-                    <span>Within 24 hours</span>
+                <div className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                  <div className="flex items-center space-x-3">
+                    <svg className="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                    <span className="font-medium">Email</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span>Live Chat</span>
-                    <span>Instant</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Emergency</span>
-                    <span>Priority handling</span>
-                  </div>
+                  <span className="text-blue-700 dark:text-blue-300 font-semibold">Within 24 hours</span>
                 </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Community Guidelines */}
+          <div className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-2xl p-8 border border-purple-200 dark:border-purple-800">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 text-center">
+              Community Guidelines
+            </h2>
+            <div className="grid md:grid-cols-3 gap-6">
+              <div className="text-center">
+                <div className="w-16 h-16 bg-green-100 dark:bg-green-900/50 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Safe Trading</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-300">
+                  All transactions are verified and users are authenticated for your security.
+                </p>
+              </div>
+              <div className="text-center">
+                <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/50 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" />
+                  </svg>
+                </div>
+                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Open Communication</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-300">
+                  Use our built-in chat system to communicate transparently with other users.
+                </p>
+              </div>
+              <div className="text-center">
+                <div className="w-16 h-16 bg-purple-100 dark:bg-purple-900/50 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                  </svg>
+                </div>
+                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Respectful Community</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-300">
+                  We maintain a positive environment where everyone feels welcome and respected.
+                </p>
               </div>
             </div>
           </div>

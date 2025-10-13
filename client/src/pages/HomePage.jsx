@@ -4,7 +4,6 @@ import Hero from '../components/Hero';
 import CategoryCard from '../components/CategoryCard';
 import Loader from '../components/Loader';
 
-
 const HomePage = () => {
   const [categories, setCategories] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');

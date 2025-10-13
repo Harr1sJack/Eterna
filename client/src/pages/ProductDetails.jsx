@@ -4,6 +4,7 @@ import axios from "axios";
 import { useAuth } from "../context/AuthContext";
 import toast from "react-hot-toast";
 
+
 const ProductDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -12,25 +13,11 @@ const ProductDetails = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+
   // Image gallery states
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [imageMode, setImageMode] = useState('contain');
 
-  // Simple reusable components
-  const StarRating = ({ rating = 5 }) => (
-    <div className="flex items-center gap-1">
-      {[...Array(5)].map((_, i) => (
-        <svg 
-          key={i} 
-          className={`w-4 h-4 ${i < rating ? 'text-yellow-400' : 'text-gray-300'}`} 
-          fill="currentColor" 
-          viewBox="0 0 20 20"
-        >
-          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-        </svg>
-      ))}
-    </div>
-  );
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -56,10 +43,12 @@ const ProductDetails = () => {
       }
     };
 
+
     if (id) {
       fetchProduct();
     }
   }, [id]);
+
 
   // Chat handler that actually creates the chat
   const handleChat = async () => {
@@ -74,11 +63,13 @@ const ProductDetails = () => {
         return;
       }
 
+
       // Check if product and seller exist
       if (!product || !product.sellerId) {
         toast.error("Unable to start chat - seller information not available");
         return;
       }
+
 
       // Check if user is trying to chat with themselves
       if (user.id === product.sellerId._id) {
@@ -89,8 +80,10 @@ const ProductDetails = () => {
         return;
       }
 
+
       // Show loading toast
       const loadingToast = toast.loading("Creating chat...");
+
 
       try {
         // Actually create the chat via API call
@@ -106,8 +99,10 @@ const ProductDetails = () => {
           }
         );
 
+
         // Dismiss loading toast
         toast.dismiss(loadingToast);
+
 
         if (response.data) {
           // Navigate to chat with the created/found chat
@@ -142,6 +137,7 @@ const ProductDetails = () => {
       toast.error("Failed to start chat");
     }
   };
+
 
   // Add to wishlist handler
   const handleAddToWishlist = () => {
@@ -198,6 +194,7 @@ const ProductDetails = () => {
     }
   };  
 
+
   // Share handler
   const handleShare = async () => {
     try {
@@ -221,6 +218,7 @@ const ProductDetails = () => {
     }
   };
 
+
   // Loading state
   if (loading) {
     return (
@@ -232,6 +230,7 @@ const ProductDetails = () => {
       </div>
     );
   }
+
 
   // Error state
   if (error || !product) {
@@ -256,15 +255,16 @@ const ProductDetails = () => {
     );
   }
 
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pt-16 md:pt-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         
       {/* Main Grid with Custom Sizing and Positioning */}
-      <div className="grid lg:grid-cols-[60%_40%] gap-8 lg:gap-12">
+      <div className="grid lg:grid-cols-[50%_50%] gap-8 lg:gap-12">
         
         {/* 🔥 LARGER, LEFT-POSITIONED, LOWER STICKY Left Column */}
-        <div className="lg:sticky lg:h-fit lg:self-start lg:-ml-24 lg:mt-8">
+        <div className="lg:sticky lg:top-24 md:lg:top-20 lg:h-fit lg:self-start lg:-ml-24 lg:mt-0">
           <div className="relative mx-auto">
             <div className="aspect-[4/3] w-full rounded-3xl overflow-hidden shadow-2xl border-4 border-white/60 dark:border-gray-600/50 bg-gradient-to-br from-white via-slate-50 to-blue-50/50 relative dark:bg-gradient-to-br dark:from-black dark:via-gray-900 dark:to-gray-800">
               
@@ -301,6 +301,7 @@ const ProductDetails = () => {
                         />
                       </div>
 
+
                       {/* Image Grid Overlay with Click Handlers */}
                       {product.images.length > 1 && (
                         <div className="absolute inset-0 opacity-0 hover:opacity-100 transition-opacity duration-500 bg-black/80 flex items-center justify-center">
@@ -331,12 +332,14 @@ const ProductDetails = () => {
                         </div>
                       )}
 
+
                       {/* Smart Image Count Badge */}
                       {product.images.length > 1 && (
                         <div className="absolute top-4 right-4 px-3 py-1 bg-black/60 backdrop-blur-sm text-white text-sm rounded-full font-medium">
                           {currentImageIndex + 1} / {product.images.length}
                         </div>
                       )}
+
 
                       {/* Improved View Mode Button */}
                       <button
@@ -373,6 +376,7 @@ const ProductDetails = () => {
                         )}
                       </button>
 
+
                       {/* Enhanced Navigation Arrows */}
                       {product.images.length > 1 && (
                         <>
@@ -396,6 +400,7 @@ const ProductDetails = () => {
                         </>
                       )}
 
+
                       {/* Zoom Instruction */}
                       {imageMode === 'zoom' && (
                         <div className="absolute bottom-4 left-1/2 -translate-x-1/2 px-4 py-2 bg-black/80 backdrop-blur-sm text-white text-sm rounded-full font-medium animate-pulse">
@@ -416,6 +421,7 @@ const ProductDetails = () => {
                   )}
                 </div>
 
+
                 {/* Enhanced Decorative Elements */}
                 <div className="absolute -top-8 -left-8 w-16 h-16 bg-gradient-to-br from-blue-500/20 to-indigo-500/20 rounded-3xl rotate-12 opacity-70 animate-pulse shadow-lg"></div>
                 <div className="absolute -bottom-8 -right-8 w-20 h-20 bg-gradient-to-br from-indigo-500/15 to-purple-500/15 rounded-full -rotate-12 opacity-60 shadow-xl animate-pulse delay-1000"></div>
@@ -428,35 +434,26 @@ const ProductDetails = () => {
           </div>
         </div>
 
-        {/* Right Column - Product Info (Scrollable) - Keep all your existing content */}
-        <div className="space-y-6">
 
-            {/* Simple Status */}
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-              <span className="text-green-600 dark:text-green-400 text-sm font-medium">Available</span>
-            </div>
+        {/* Right Column - Product Info (Scrollable) */}
+        <div className="space-y-6">
 
             {/* Product Title */}
             <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white leading-tight">
               {product.title}
             </h1>
 
-            {/* Rating & Reviews */}
-            <div className="flex items-center gap-4">
-              <StarRating rating={5} />
-              <span className="text-gray-600 dark:text-gray-400">4.8 (1,247 reviews)</span>
-            </div>
 
             {/* Price */}
             <div className="flex items-baseline gap-3">
               <span className="text-4xl font-bold text-gray-900 dark:text-white">
-                ₹{product.price?.toLocaleString()}
+                ${product.price?.toLocaleString()}
               </span>
               <span className="text-lg text-gray-500">
                 (Negotiable)
               </span>
             </div>
+
 
             {/* Marketplace Info */}
             <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700/50 rounded-lg p-4">
@@ -472,6 +469,7 @@ const ProductDetails = () => {
                 </div>
               </div>
             </div>
+
 
             {/* Action Buttons */}
             <div className="space-y-3 pt-4">
@@ -510,6 +508,7 @@ const ProductDetails = () => {
               </div>
             </div>
 
+
             {/* Description */}
             <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">Description</h3>
@@ -517,6 +516,7 @@ const ProductDetails = () => {
                 {product.description}
               </p>
             </div>
+
 
             {/* Features */}
             {product.tags?.length > 0 && (
@@ -534,6 +534,7 @@ const ProductDetails = () => {
                 </div>
               </div>
             )}
+
 
             {/* Product Details */}
             <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
@@ -560,7 +561,8 @@ const ProductDetails = () => {
               </div>
             </div>
 
-            {/* Seller Info */}
+
+            {/* Seller Info - Simplified */}
             {product.sellerId && (
               <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Seller Information</h3>
@@ -580,12 +582,9 @@ const ProductDetails = () => {
                     <h4 className="font-semibold text-gray-900 dark:text-white">
                       {product.sellerId.name}
                     </h4>
-                    <div className="flex items-center gap-2">
-                      <StarRating rating={5} />
-                      <span className="text-sm text-gray-600 dark:text-gray-400">Verified seller</span>
-                    </div>
                   </div>
                 </div>
+
 
                 <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3 text-sm text-gray-600 dark:text-gray-400 mt-4">
                   💬 Use the "Chat with Seller" button above to discuss price, condition, pickup/delivery options, and payment methods.
@@ -598,5 +597,6 @@ const ProductDetails = () => {
     </div>
   );
 };
+
 
 export default ProductDetails;

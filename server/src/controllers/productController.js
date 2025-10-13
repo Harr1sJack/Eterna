@@ -108,3 +108,35 @@ export const createProduct = async (req, res) => {
     res.status(500).json({ message: 'Server Error' });
   }
 };
+export const deleteProduct = async (req, res) => {
+  try {
+    const deleted = await Product.findByIdAndDelete(req.params.id);
+    if (!deleted) {
+      return res.status(404).json({ error: "Product not found" });
+    }
+    res.json({ message: "Product removed" });
+  } catch (error) {
+    console.error("Error deleting product:", error);
+    res.status(500).json({ error: "Failed to delete product" });
+  }
+};
+
+export const getProductsByCategory = async (req, res) => {
+  try {
+    const { categoryId } = req.params;
+    
+    const products = await Product.find({ 
+      categoryId: categoryId,
+      isApproved: true 
+    })
+      .populate('sellerId', 'name profilePic')
+      .populate('categoryId', 'title')
+      .sort({ createdAt: -1 })
+      .exec();
+
+    res.json(products);
+  } catch (error) {
+    console.error('Error fetching products by category:', error);
+    res.status(500).json({ message: 'Server Error' });
+  }
+};

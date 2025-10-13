@@ -10,6 +10,7 @@ import chatRoutes from './routes/chat.js';
 import profileRoutes from './routes/profile.js';
 import categoryRoutes from "./routes/category.js";
 import productRoutes from "./routes/product.js";
+import mailRoutes from './routes/mail.js';
 import { initSocket } from './socket.js';
 import ConnectDB from './configs/db.js';
 import adminRoutes from "./routes/admin.js";
@@ -33,6 +34,7 @@ app.use("/api/chats", chatRoutes);
 app.use('/api/profile', profileRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/products", productRoutes);
+app.use('/api', mailRoutes);
 
 const httpServer = http.createServer(app);
 

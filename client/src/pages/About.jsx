@@ -145,7 +145,7 @@ const About = () => {
               <div className="bg-white dark:bg-[#131313] rounded-xl p-8 border border-gray-200 dark:border-gray-700 text-center">
                 <div className="w-24 h-24 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full mx-auto mb-6 flex items-center justify-center overflow-hidden">
                   <img
-                    src="/assets/Shaun.jpg"
+                    src="/profile/Shaun.JPG"
                     alt="Shaun Rodrigues"
                     className="w-full h-full object-cover rounded-full"
                     onError={(e) => {
@@ -171,7 +171,7 @@ const About = () => {
               <div className="bg-white dark:bg-[#131313] rounded-xl p-8 border border-gray-200 dark:border-gray-700 text-center">
                 <div className="w-24 h-24 bg-gradient-to-br from-green-400 to-blue-500 rounded-full mx-auto mb-6 flex items-center justify-center overflow-hidden">
                   <img
-                    src="/profile/default.png"
+                    src="/profile/Jack.jpeg"
                     alt="Harris Jack"
                     className="w-full h-full object-cover rounded-full"
                     onError={(e) => {
@@ -197,7 +197,7 @@ const About = () => {
               <div className="bg-white dark:bg-[#131313] rounded-xl p-8 border border-gray-200 dark:border-gray-700 text-center">
                 <div className="w-24 h-24 bg-gradient-to-br from-purple-400 to-pink-500 rounded-full mx-auto mb-6 flex items-center justify-center overflow-hidden">
                   <img
-                    src="/profile/default.png"
+                    src="/profile/Rabin.jpg"
                     alt="Rabin"
                     className="w-full h-full object-cover rounded-full"
                     onError={(e) => {

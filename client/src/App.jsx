@@ -1,10 +1,9 @@
-// src/App.jsx
+
 import React from 'react'
 import { Routes, Route, useLocation } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast';
 import { GoogleOAuthProvider } from '@react-oauth/google'; 
 
-// Your existing imports...
 import HomePage from './pages/HomePage'
 import NavBar from './components/NavBar'
 import Footer from './components/Footer'
@@ -37,15 +36,15 @@ const App = () => {
             toastOptions={{
               duration: 5000,
               style: {
-                background: 'var(--toast-bg)',
-                color: 'var(--toast-text)'
+                background: '#363636',
+                color: '#fff',
               }
             }}
           />
           <NavBar />
           <Routes>
             <Route path='/' element={<HomePage />} />
-            <Route path="/admin" element={<Admin />} />
+            <Route path="/qpdvimeg7354920pdhe7812" element={<Admin />} />
             <Route path='/login' element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/profile" element={<Profile />} />
