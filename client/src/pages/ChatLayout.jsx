@@ -57,8 +57,6 @@ const ChatLayout = () => {
   const handleMarkChatAsRead = useCallback((chatId) => {
     if (!chatId || !user?.id) return;
 
-    console.log('🔖 Marking chat as read:', chatId);
-
     // Update local state immediately
     setChats(prevChats => 
       prevChats.map(chat => 
@@ -109,7 +107,7 @@ const ChatLayout = () => {
     }
   }, [token, user?.id, handleMarkChatAsRead, isMobile]);
 
-  // Improved socket initialization with better reconnection logic
+  // 🔥 POLLING ONLY Socket initialization
   const initializeSocket = useCallback(() => {
     if (!user?.id || !token || isReconnectingRef.current) return;
     
@@ -124,15 +122,17 @@ const ChatLayout = () => {
         socketRef.current = null;
       }
 
+      // 🔥 POLLING ONLY CONFIGURATION
       const newSocket = io(import.meta.env.VITE_SERVER_URL || 'http://localhost:5000', {
         auth: { token },
-        transports: ['websocket', 'polling'],
+        transports: ['polling'], // 🔥 POLLING ONLY
+        upgrade: false,          // 🔥 NEVER UPGRADE TO WEBSOCKET
+        rememberUpgrade: false,  // 🔥 DON'T REMEMBER WEBSOCKET
         timeout: 20000,
         reconnection: true,
         reconnectionAttempts: 5,
         reconnectionDelay: 1000,
         reconnectionDelayMax: 5000,
-        maxReconnectionAttempts: 5,
         forceNew: true,
         autoConnect: true,
         pingTimeout: 60000,
@@ -141,7 +141,7 @@ const ChatLayout = () => {
 
       // Connection event handlers
       newSocket.on('connect', () => {
-        console.log('✅ Socket connected:', newSocket.id);
+        console.log('✅ Socket connected via POLLING:', newSocket.id);
         setIsConnected(true);
         setConnectionError(null);
         isReconnectingRef.current = false;
@@ -165,7 +165,6 @@ const ChatLayout = () => {
         setIsConnected(false);
         
         if (reason === 'io server disconnect' || reason === 'transport close') {
-          console.log('🔄 Attempting reconnection...');
           if (reconnectTimeoutRef.current) {
             clearTimeout(reconnectTimeoutRef.current);
           }
@@ -185,20 +184,14 @@ const ChatLayout = () => {
         isReconnectingRef.current = false;
       });
 
-      newSocket.on('reconnect_attempt', (attemptNumber) => {
-        console.log('🔄 Reconnection attempt:', attemptNumber);
-      });
-
       newSocket.on('reconnect_failed', () => {
         console.error('❌ Reconnection failed');
         setConnectionError('Failed to reconnect to server');
         isReconnectingRef.current = false;
       });
 
-      // Better message handling with proper unread count logic
+      // Message handling
       newSocket.on('receive_message', (data) => {
-        console.log('📨 Received message:', data);
-        
         setActiveChat(prevChat => {
           if (prevChat && data.chatId === prevChat.id) {
             const currentMessages = prevChat.messages || [];
@@ -210,7 +203,7 @@ const ChatLayout = () => {
             );
             
             if (!messageExists) {
-              // Immediately mark as read since user is viewing the chat
+              // Mark as read since user is viewing the chat
               setTimeout(() => {
                 if (socketRef.current?.connected) {
                   socketRef.current.emit('mark_chat_read', { chatId: data.chatId, userId: user.id });
@@ -229,11 +222,10 @@ const ChatLayout = () => {
           return prevChat;
         });
 
-        // Update chat list with proper unread count logic
+        // Update chat list
         setChats(prevChats => 
           prevChats.map(chat => {
             if (chat.id === data.chatId) {
-              // Don't increment unread count if this chat is currently active
               const isCurrentlyActive = activeChatRef.current?.id === data.chatId;
               const shouldIncrementUnread = data.senderId !== user.id && !isCurrentlyActive;
               
@@ -249,9 +241,7 @@ const ChatLayout = () => {
         );
       });
 
-      // Listen for chat marked as read events
       newSocket.on('chat_marked_read', (data) => {
-        console.log('📖 Chat marked as read:', data);
         setChats(prevChats => 
           prevChats.map(chat => 
             chat.id === data.chatId 
@@ -261,9 +251,7 @@ const ChatLayout = () => {
         );
       });
 
-      // Better reaction handling
       newSocket.on('reaction_updated', (data) => {
-        console.log('😄 Reaction updated:', data);
         setActiveChat(prevChat => {
           if (prevChat && data.chatId === prevChat.id && prevChat.messages) {
             return {
@@ -304,131 +292,6 @@ const ChatLayout = () => {
     }
   }, [user?.id, token]);
 
-  // Handle window visibility changes
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        console.log('🔍 Window became visible');
-        
-        // Refresh active chat when window becomes visible
-        if (activeChatRef.current?.id && socketRef.current?.connected && user?.id && token) {
-          console.log('🔄 Refreshing active chat after visibility change...');
-          
-          // Refresh the active chat by re-fetching its data
-          const refreshActiveChat = async () => {
-            try {
-              const res = await axios.get(
-                `${import.meta.env.VITE_SERVER_URL}/api/chats/${activeChatRef.current.id}`,
-                {
-                  headers: { Authorization: `Bearer ${token}` },
-                  params: { userId: user.id }
-                }
-              );
-              
-              const fullChat = res.data;
-              
-              const normalizedChat = {
-                ...fullChat,
-                messages: Array.isArray(fullChat.messages) ? fullChat.messages : []
-              };
-              
-              // Re-join the chat room
-              if (socketRef.current?.connected) {
-                socketRef.current.emit('join_chat', normalizedChat.id);
-              }
-              
-              // Update active chat with fresh data
-              setActiveChat(normalizedChat);
-              
-              // Mark as read if there are unread messages
-              if (normalizedChat.unreadCount > 0) {
-                handleMarkChatAsRead(normalizedChat.id);
-              }
-              
-              console.log('✅ Active chat refreshed successfully');
-            } catch (error) {
-              console.error("❌ Error refreshing active chat:", error);
-            }
-          };
-          
-          // Small delay to ensure socket is fully reconnected
-          setTimeout(refreshActiveChat, 500);
-        }
-        
-        // Also refresh the chat list
-        fetchUserChats();
-        
-        // Reconnect socket if needed
-        if (socketRef.current && !socketRef.current.connected && user?.id && token) {
-          console.log('🔄 Reconnecting socket after visibility change...');
-          setTimeout(() => {
-            if (!isReconnectingRef.current) {
-              initializeSocket();
-            }
-          }, 1000);
-        }
-      } else {
-        console.log('👁️ Window became hidden');
-      }
-    };
-
-    const handlePageShow = (event) => {
-      console.log('📄 Page show event, persisted:', event.persisted);
-      if (event.persisted && user?.id && token) {
-        // Refresh everything when page is restored from cache
-        setTimeout(() => {
-          // Refresh active chat if exists
-          if (activeChatRef.current?.id) {
-            handleChatSelect(activeChatRef.current);
-          }
-          
-          // Refresh chat list
-          fetchUserChats();
-          
-          // Reconnect socket if needed
-          if (!socketRef.current?.connected && !isReconnectingRef.current) {
-            initializeSocket();
-          }
-        }, 1000);
-      }
-    };
-
-    const handleFocus = () => {
-      console.log('🎯 Window focused');
-      
-      // Also refresh active chat on window focus
-      if (activeChatRef.current?.id && user?.id && token) {
-        console.log('🔄 Refreshing active chat on window focus...');
-        
-        // Re-select the current chat to refresh it
-        setTimeout(() => {
-          if (activeChatRef.current) {
-            handleChatSelect(activeChatRef.current);
-          }
-        }, 300);
-      }
-      
-      // Reconnect socket if needed
-      if (socketRef.current && !socketRef.current.connected && user?.id && token) {
-        setTimeout(() => {
-          if (!isReconnectingRef.current) {
-            initializeSocket();
-          }
-        }, 500);
-      }
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('pageshow', handlePageShow);
-    window.addEventListener('focus', handleFocus);
-
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('pageshow', handlePageShow);
-      window.removeEventListener('focus', handleFocus);
-    };
-  }, [initializeSocket, user?.id, token, handleChatSelect, handleMarkChatAsRead, fetchUserChats]);
-
   // Initialize socket on mount
   useEffect(() => {
     if (user?.id && token) {
@@ -441,7 +304,6 @@ const ChatLayout = () => {
       }
       
       if (socketRef.current) {
-        console.log('🧹 Cleaning up socket connection');
         socketRef.current.removeAllListeners();
         socketRef.current.disconnect();
         socketRef.current = null;
@@ -483,9 +345,6 @@ const ChatLayout = () => {
   const handleAddReaction = (messageId, emoji) => {
     if (!activeChat || !socketRef.current?.connected) return;
 
-    console.log('😄 Adding reaction:', { messageId, emoji });
-
-    // Use REST API call instead of socket
     const makeReactionRequest = async () => {
       try {
         await axios.post(
@@ -517,8 +376,6 @@ const ChatLayout = () => {
           data: { userId: user.id }
         }
       );
-      
-      console.log('Message deleted successfully');
     } catch (error) {
       console.error('Failed to delete message:', error);
     }
