@@ -15,11 +15,12 @@ import { initSocket } from './socket.js';
 import ConnectDB from './configs/db.js';
 import adminRoutes from "./routes/admin.js";
 
-const PORT = process.env.PORT || 5000;
+// 🔥 FIX: Use PORT environment variable (required for Cloud Run)
+const PORT = process.env.PORT || 8080; // Changed from 5000 to 8080
 
 const app = express();
 
-// 🔥 COMPLETELY OPEN CORS - ALLOW EVERYTHING (for college project)
+// 🔥 COMPLETELY OPEN CORS
 const corsOptions = {
   origin: true, // Allow all origins
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
@@ -30,8 +31,6 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-
-// Handle all preflight requests
 app.options('*', cors(corsOptions));
 
 app.use(express.json({ limit: '5mb' }));
@@ -48,6 +47,7 @@ app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 app.get('/health', (req, res) => {
   res.status(200).json({ 
     status: 'healthy', 
+    port: PORT,
     timestamp: new Date().toISOString(),
     cors: 'fully open'
   });
@@ -66,9 +66,14 @@ const httpServer = http.createServer(app);
 ConnectDB()
   .then(() => {
     initSocket(httpServer);
+    // 🔥 CRITICAL: Listen on 0.0.0.0 (all interfaces) with PORT from environment
     httpServer.listen(PORT, '0.0.0.0', () => {
       console.log('🚀 Server running on port', PORT);
       console.log('✅ CORS fully open for all origins');
+      console.log('🔧 Environment PORT:', process.env.PORT);
     });
   })
-  .catch(err => console.error(err));
+  .catch(err => {
+    console.error('❌ Server startup error:', err);
+    process.exit(1); // Exit on error
+  });
