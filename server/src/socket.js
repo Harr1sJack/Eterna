@@ -9,18 +9,38 @@ const connectedUsers = new Map();
 export const initSocket = (httpServer) => {
   io = new Server(httpServer, {
     cors: {
-      origin:[
-      process.env.CLIENT_URL,
-      "https://eterna-marketplace.firebaseapp.com",
-      process.env.LOCAL_URL
-      ],
+      origin: "*", // 🔥 ALLOW ALL ORIGINS
       methods: ["GET", "POST"],
-      credentials: true
-    }
+      credentials: false, // 🔥 DISABLED for wildcard compatibility
+      allowedHeaders: ["*"]
+    },
+    // 🔥 OPTIMIZED FOR GEN2 + FIREBASE APP HOSTING
+    transports: ['websocket', 'polling'], // Try WebSocket first
+    allowUpgrades: true,
+    upgradeTimeout: 30000,
+    pingTimeout: 60000,
+    pingInterval: 25000,
+    maxHttpBufferSize: 1e6,
+    allowEIO3: true,
+    cookie: false
   });
 
+  // 🔥 LOG TRANSPORT PROTOCOL
+  console.log('🚀 Socket.IO Server initialized');
+  console.log('🔧 Transports: [websocket, polling]');
+  console.log('🌐 CORS: fully open for all origins');
+
   io.on('connection', (socket) => {
-    console.log('User connected:', socket.id);
+    // 🔥 LOG CONNECTION TRANSPORT
+    const transport = socket.conn.transport.name;
+    console.log(`👤 User connected: ${socket.id}`);
+    console.log(`🚗 Transport: ${transport.toUpperCase()}`);
+    
+    // Monitor transport upgrades
+    socket.conn.on('upgrade', () => {
+      const upgradedTransport = socket.conn.transport.name;
+      console.log(`⬆️ Transport upgraded: ${transport.toUpperCase()} → ${upgradedTransport.toUpperCase()}`);
+    });
 
     socket.on('authenticate', async (userId) => {
       try {
@@ -38,20 +58,20 @@ export const initSocket = (httpServer) => {
         });
 
         socket.broadcast.emit('user_online', userId);
-        console.log(`User ${userId} authenticated and joined ${chats.length} chats`);
+        console.log(`✅ User ${userId} authenticated via ${socket.conn.transport.name.toUpperCase()}`);
       } catch (error) {
-        console.error('Authentication error:', error);
+        console.error('❌ Authentication error:', error);
       }
     });
 
     socket.on('join_chat', (chatId) => {
       socket.join(chatId);
-      console.log(`User ${socket.userId} joined chat ${chatId}`);
+      console.log(`🏠 User ${socket.userId} joined chat ${chatId}`);
     });
 
     socket.on('leave_chat', (chatId) => {
       socket.leave(chatId);
-      console.log(`User ${socket.userId} left chat ${chatId}`);
+      console.log(`🚪 User ${socket.userId} left chat ${chatId}`);
     });
 
     socket.on('send_message', async (data) => {
@@ -116,15 +136,17 @@ export const initSocket = (httpServer) => {
           }
         };
 
+        console.log(`💬 Broadcasting message via ${socket.conn.transport.name.toUpperCase()}`);
+        
         io.to(chatId).emit('receive_message', {
           chatId,
           message: formattedMessage,
           senderId
         });
 
-        console.log(`Message sent in chat ${chatId} by ${senderId}`);
+        console.log(`✅ Message sent in chat ${chatId} by ${senderId}`);
       } catch (error) {
-        console.error('Send message error:', error);
+        console.error('❌ Send message error:', error);
         socket.emit('error', { message: 'Failed to send message' });
       }
     });
@@ -160,7 +182,7 @@ export const initSocket = (httpServer) => {
           added
         });
       } catch (error) {
-        console.error('Add reaction error:', error);
+        console.error('❌ Add reaction error:', error);
       }
     });
 
@@ -181,7 +203,7 @@ export const initSocket = (httpServer) => {
 
         io.to(chatId).emit('message_deleted', { chatId, messageId });
       } catch (error) {
-        console.error('Delete message error:', error);
+        console.error('❌ Delete message error:', error);
       }
     });
 
@@ -201,12 +223,13 @@ export const initSocket = (httpServer) => {
         
         socket.to(chatId).emit('messages_read', { chatId, userId });
       } catch (error) {
-        console.error('Mark messages read error:', error);
+        console.error('❌ Mark messages read error:', error);
       }
     });
 
     socket.on('disconnect', async () => {
-      console.log('User disconnected:', socket.id);
+      const transport = socket.conn.transport.name;
+      console.log(`👋 User disconnected: ${socket.id} via ${transport.toUpperCase()}`);
       
       if (socket.userId) {
         connectedUsers.delete(socket.userId);
@@ -219,7 +242,7 @@ export const initSocket = (httpServer) => {
 
           socket.broadcast.emit('user_offline', socket.userId);
         } catch (error) {
-          console.error('Disconnect error:', error);
+          console.error('❌ Disconnect error:', error);
         }
       }
     });
