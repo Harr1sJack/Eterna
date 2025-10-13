@@ -47,13 +47,16 @@ const Explore = () => {
           price: p.price,
           stock: p.stock,
           condition: p.condition,
-          images: Array.isArray(p.images) ? p.images : [],
+          // Use firebaseUrls instead of images
+          firebaseUrls: Array.isArray(p.firebaseUrls) ? p.firebaseUrls : 
+                       Array.isArray(p.images) ? p.images : [], // fallback to images if firebaseUrls not available
           seller: {
             id: p.sellerId?._id || null,
             name: p.sellerId?.name || "Unknown Seller",
           },
           categoryId: p.categoryId,
           isApproved: p.isApproved,
+          createdAt: p.createdAt, // Add createdAt for sorting
         }));
 
         setProducts(structuredProducts);

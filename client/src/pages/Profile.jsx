@@ -5,6 +5,7 @@ import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import { uploadFile } from '../utils/firebase';
+import ProductCard from '../components/ProductCard';
 
 const Profile = () => {
   const { user, logout, token } = useAuth();
@@ -107,7 +108,21 @@ const Profile = () => {
           `${import.meta.env.VITE_SERVER_URL}/api/products/myproducts`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
-        setUserProducts(res.data.products || []);
+        
+        // Transform products to include firebaseUrls
+        const transformedProducts = (res.data.products || []).map(p => ({
+          id: p._id,
+          title: p.title,
+          description: p.description,
+          price: p.price,
+          firebaseUrls: p.firebaseUrls || p.images || [],
+          categoryId: p.categoryId,
+          isApproved: p.isApproved,
+          createdAt: p.createdAt,
+          tags: p.tags
+        }));
+        
+        setUserProducts(transformedProducts);
       } catch (err) {
         console.error('Error fetching user products', err);
         toast.error('Failed to load your products');
@@ -219,7 +234,7 @@ const Profile = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
-      setUserProducts(prev => prev.filter(p => p._id !== productId));
+      setUserProducts(prev => prev.filter(p => p.id !== productId));
       toast.success('Product deleted successfully');
     } catch (err) {
       console.error('Error deleting product:', err);
@@ -256,13 +271,12 @@ const Profile = () => {
     return filtered;
   };
 
-  const getFilteredProductsCount = () => {
-    const filtered = getFilteredAndSortedProducts();
-    return {
-      total: filtered.length,
-      approved: filtered.filter(p => p.isApproved).length,
-      pending: filtered.filter(p => !p.isApproved).length
-    };
+  const getProductStats = () => {
+    const total = userProducts.length;
+    const approved = userProducts.filter(p => p.isApproved).length;
+    const pending = userProducts.filter(p => !p.isApproved).length;
+    
+    return { total, approved, pending };
   };
 
   const handleTabSwitch = (tabId) => {
@@ -274,6 +288,8 @@ const Profile = () => {
       setTabSwitchingLoading(false);
     }, 150);
   };
+
+  const stats = getProductStats();
 
   return (
     <div className="relative min-h-screen pt-24 py-10 px-4 flex flex-col items-center overflow-hidden bg-cover bg-center" style={{ backgroundImage: "url('/assets/loginbk1.jpg')" }}>
@@ -607,17 +623,226 @@ const Profile = () => {
               </div>
             )}
 
-            {/* Products Tab - Keep existing implementation */}
+            {/* Products Tab */}
             {activeTab === 'products' && (
               <div className="space-y-6">
-                {/* ... existing products tab implementation ... */}
+                {/* Filter Controls */}
+                <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+                  <div className="flex flex-wrap gap-3">
+                    <select
+                      value={productsFilter}
+                      onChange={(e) => setProductsFilter(e.target.value)}
+                      className="px-4 py-2 border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200"
+                    >
+                      <option value="all">All Products ({stats.total})</option>
+                      <option value="approved">Approved ({stats.approved})</option>
+                      <option value="pending">Pending ({stats.pending})</option>
+                    </select>
+                    
+                    <select
+                      value={productsSortBy}
+                      onChange={(e) => setProductsSortBy(e.target.value)}
+                      className="px-4 py-2 border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200"
+                    >
+                      <option value="newest">Newest First</option>
+                      <option value="oldest">Oldest First</option>
+                      <option value="price-high">Price: High to Low</option>
+                      <option value="price-low">Price: Low to High</option>
+                      <option value="title">Title A-Z</option>
+                    </select>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setProductsView('grid')}
+                      className={`p-2 rounded ${productsView === 'grid' ? 'bg-purple-600 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400'}`}
+                    >
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                      </svg>
+                    </button>
+                    <button
+                      onClick={() => setProductsView('list')}
+                      className={`p-2 rounded ${productsView === 'list' ? 'bg-purple-600 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400'}`}
+                    >
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Products Grid/List */}
+                {loadingProducts ? (
+                  <div className="flex justify-center items-center py-12">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+                  </div>
+                ) : getFilteredAndSortedProducts().length === 0 ? (
+                  <div className="text-center py-12">
+                    <div className="text-6xl mb-4">📦</div>
+                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No Products Found</h3>
+                    <p className="text-gray-600 dark:text-gray-400">
+                      {productsFilter === 'all' ? "You haven't posted any products yet" : 
+                       productsFilter === 'approved' ? 'No approved products found' : 
+                       'No pending products found'}
+                    </p>
+                  </div>
+                ) : (
+                  <div className={productsView === 'grid' 
+                    ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" 
+                    : "space-y-4"
+                  }>
+                    {getFilteredAndSortedProducts().map((product) => (
+                      <div key={product.id} className="relative">
+                        <ProductCard 
+                          product={product}
+                          hideLikeButton={true}
+                          actionButtons={
+                            <div className="flex gap-2">
+                              <span className={`text-xs px-2 py-1 rounded-full ${
+                                product.isApproved 
+                                  ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+                                  : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400'
+                              }`}>
+                                {product.isApproved ? 'Approved' : 'Pending'}
+                              </span>
+                              <button
+                                onClick={() => handleDeleteProduct(product.id)}
+                                className="text-xs bg-red-100 hover:bg-red-200 text-red-800 px-2 py-1 rounded-full transition-colors dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50"
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          }
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 
-            {/* Activity Tab - Keep existing implementation */}
+            {/* Activity Tab */}
             {activeTab === 'activity' && (
               <div className="space-y-6">
-                {/* ... existing activity tab implementation ... */}
+                <div className="text-center mb-8">
+                  <h3 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-2">
+                    Activity Overview
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-400">Your product statistics and activity</p>
+                </div>
+
+                {/* Statistics Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {/* Total Products */}
+                  <div className={`bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-2xl p-6 border border-blue-200/30 dark:border-blue-700/30 transform transition-all duration-700 ${isStatsAnimated ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-blue-600 dark:text-blue-400 text-sm font-medium mb-1">Total Products</p>
+                        <p className={`text-3xl font-bold text-blue-700 dark:text-blue-300 transition-all duration-1000 ${isStatsAnimated ? 'scale-100' : 'scale-0'}`}>
+                          {stats.total}
+                        </p>
+                        <p className="text-xs text-blue-500 dark:text-blue-400 mt-1">All your listings</p>
+                      </div>
+                      <div className="w-16 h-16 bg-blue-100 dark:bg-blue-800/30 rounded-full flex items-center justify-center">
+                        <svg className="w-8 h-8 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Approved Products */}
+                  <div className={`bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-2xl p-6 border border-green-200/30 dark:border-green-700/30 transform transition-all duration-700 delay-200 ${isStatsAnimated ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-green-600 dark:text-green-400 text-sm font-medium mb-1">Approved</p>
+                        <p className={`text-3xl font-bold text-green-700 dark:text-green-300 transition-all duration-1000 delay-200 ${isStatsAnimated ? 'scale-100' : 'scale-0'}`}>
+                          {stats.approved}
+                        </p>
+                        <p className="text-xs text-green-500 dark:text-green-400 mt-1">Live on marketplace</p>
+                      </div>
+                      <div className="w-16 h-16 bg-green-100 dark:bg-green-800/30 rounded-full flex items-center justify-center">
+                        <svg className="w-8 h-8 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Pending Products */}
+                  <div className={`bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 rounded-2xl p-6 border border-yellow-200/30 dark:border-yellow-700/30 transform transition-all duration-700 delay-400 ${isStatsAnimated ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-yellow-600 dark:text-yellow-400 text-sm font-medium mb-1">Pending Review</p>
+                        <p className={`text-3xl font-bold text-yellow-700 dark:text-yellow-300 transition-all duration-1000 delay-400 ${isStatsAnimated ? 'scale-100' : 'scale-0'}`}>
+                          {stats.pending}
+                        </p>
+                        <p className="text-xs text-yellow-500 dark:text-yellow-400 mt-1">Under review</p>
+                      </div>
+                      <div className="w-16 h-16 bg-yellow-100 dark:bg-yellow-800/30 rounded-full flex items-center justify-center">
+                        <svg className="w-8 h-8 text-yellow-600 dark:text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Activity Progress Bar */}
+                {stats.total > 0 && (
+                  <div className={`bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700 transform transition-all duration-700 delay-600 ${isStatsAnimated ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
+                    <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Approval Progress</h4>
+                    <div className="space-y-3">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600 dark:text-gray-400">Approved Products</span>
+                        <span className="font-medium text-gray-900 dark:text-white">{Math.round((stats.approved / stats.total) * 100)}%</span>
+                      </div>
+                      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                        <div 
+                          className={`bg-gradient-to-r from-green-500 to-emerald-500 h-2 rounded-full transition-all duration-1000 delay-800 ${isStatsAnimated ? 'opacity-100' : 'opacity-0'}`}
+                          style={{ width: isStatsAnimated ? `${Math.round((stats.approved / stats.total) * 100)}%` : '0%' }}
+                        ></div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Quick Actions */}
+                <div className={`bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 rounded-2xl p-6 border border-purple-200/30 dark:border-purple-700/30 transform transition-all duration-700 delay-800 ${isStatsAnimated ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
+                  <h4 className="text-lg font-semibold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent mb-4">Quick Actions</h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <button
+                      onClick={() => navigate('/post-product')}
+                      className="flex items-center gap-3 p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:shadow-md transition-all duration-300 group"
+                    >
+                      <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <svg className="w-5 h-5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                        </svg>
+                      </div>
+                      <div className="text-left">
+                        <p className="font-medium text-gray-900 dark:text-white">Add New Product</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">List a new item</p>
+                      </div>
+                    </button>
+
+                    <button
+                      onClick={() => handleTabSwitch('products')}
+                      className="flex items-center gap-3 p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:shadow-md transition-all duration-300 group"
+                    >
+                      <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <svg className="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                        </svg>
+                      </div>
+                      <div className="text-left">
+                        <p className="font-medium text-gray-900 dark:text-white">Manage Products</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">View & edit listings</p>
+                      </div>
+                    </button>
+                  </div>
+                </div>
               </div>
             )}
           </div>

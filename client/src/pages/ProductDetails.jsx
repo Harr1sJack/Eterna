@@ -4,7 +4,6 @@ import axios from "axios";
 import { useAuth } from "../context/AuthContext";
 import toast from "react-hot-toast";
 
-
 const ProductDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -13,11 +12,13 @@ const ProductDetails = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-
   // Image gallery states
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [imageMode, setImageMode] = useState('contain');
-
+  
+  // Image error handling states
+  const [imageError, setImageError] = useState(false);
+  const [fallbackError, setFallbackError] = useState(false);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -43,12 +44,27 @@ const ProductDetails = () => {
       }
     };
 
-
     if (id) {
       fetchProduct();
     }
   }, [id]);
 
+  // Handle image errors
+  const handleImageError = (e) => {
+    if (!imageError) {
+      setImageError(true);
+      e.target.src = '/assets/default-product.JPG';
+    } else if (!fallbackError) {
+      setFallbackError(true);
+      e.target.style.display = 'none';
+    }
+  };
+
+  // Reset error states when product or image index changes
+  useEffect(() => {
+    setImageError(false);
+    setFallbackError(false);
+  }, [product, currentImageIndex]);
 
   // Chat handler that actually creates the chat
   const handleChat = async () => {
@@ -63,13 +79,11 @@ const ProductDetails = () => {
         return;
       }
 
-
       // Check if product and seller exist
       if (!product || !product.sellerId) {
         toast.error("Unable to start chat - seller information not available");
         return;
       }
-
 
       // Check if user is trying to chat with themselves
       if (user.id === product.sellerId._id) {
@@ -80,10 +94,8 @@ const ProductDetails = () => {
         return;
       }
 
-
       // Show loading toast
       const loadingToast = toast.loading("Creating chat...");
-
 
       try {
         // Actually create the chat via API call
@@ -99,10 +111,8 @@ const ProductDetails = () => {
           }
         );
 
-
         // Dismiss loading toast
         toast.dismiss(loadingToast);
-
 
         if (response.data) {
           // Navigate to chat with the created/found chat
@@ -138,8 +148,7 @@ const ProductDetails = () => {
     }
   };
 
-
-  // Add to wishlist handler
+  // Add to wishlist handler - updated to use firebaseUrls
   const handleAddToWishlist = () => {
     if (!user || !token) {
       toast.error("Please log in to add to wishlist", {
@@ -165,13 +174,13 @@ const ProductDetails = () => {
         return;
       }
       
-      // Create wishlist item object
+      // Create wishlist item object - use firebaseUrls instead of images
       const wishlistItem = {
         id: product._id,
         title: product.title,
         description: product.description,
         price: product.price,
-        images: product.images,
+        firebaseUrls: product.firebaseUrls || product.images || [], // fallback to images if firebaseUrls not available
         categoryId: product.categoryId,
         sellerId: product.sellerId,
         createdAt: product.createdAt,
@@ -193,7 +202,6 @@ const ProductDetails = () => {
       toast.error("Failed to add to wishlist");
     }
   };  
-
 
   // Share handler
   const handleShare = async () => {
@@ -218,7 +226,6 @@ const ProductDetails = () => {
     }
   };
 
-
   // Loading state
   if (loading) {
     return (
@@ -230,7 +237,6 @@ const ProductDetails = () => {
       </div>
     );
   }
-
 
   // Error state
   if (error || !product) {
@@ -255,6 +261,10 @@ const ProductDetails = () => {
     );
   }
 
+  // Get image URLs - prioritize firebaseUrls, fallback to images
+  const imageUrls = product.firebaseUrls && product.firebaseUrls.length > 0 
+    ? product.firebaseUrls 
+    : product.images || [];
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pt-16 md:pt-20">
@@ -263,21 +273,20 @@ const ProductDetails = () => {
       {/* Main Grid with Custom Sizing and Positioning */}
       <div className="grid lg:grid-cols-[50%_50%] gap-8 lg:gap-12">
         
-        {/* 🔥 LARGER, LEFT-POSITIONED, LOWER STICKY Left Column */}
+        {/* Left Column - Image Gallery */}
         <div className="lg:sticky lg:top-24 md:lg:top-20 lg:h-fit lg:self-start lg:-ml-24 lg:mt-0">
           <div className="relative mx-auto">
             <div className="aspect-[4/3] w-full rounded-3xl overflow-hidden shadow-2xl border-4 border-white/60 dark:border-gray-600/50 bg-gradient-to-br from-white via-slate-50 to-blue-50/50 relative dark:bg-gradient-to-br dark:from-black dark:via-gray-900 dark:to-gray-800">
               
-              {/* Rest of your carousel code stays exactly the same */}
               <div className="relative w-full h-full">
                 {/* Main Image Display */}
                 <div className="relative w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-50/80 to-purple-50/30 rounded-2xl overflow-hidden group dark:bg-gradient-to-br dark:from-black dark:via-gray-900 dark:to-gray-800">
-                  {product.images && product.images.length > 0 ? (
+                  {imageUrls && imageUrls.length > 0 && !fallbackError ? (
                     <>
                       {/* Current Image with Better Fitting */}
                       <div className="relative w-full h-full flex items-center justify-center p-6">
                         <img
-                          src={`${import.meta.env.VITE_SERVER_URL}/${product.images[currentImageIndex]}`}
+                          src={imageError ? '/assets/default-product.JPG' : imageUrls[currentImageIndex]}
                           alt={`Product ${currentImageIndex + 1}`}
                           className={`transition-all duration-700 cursor-zoom-in rounded-2xl shadow-lg ${
                             imageMode === 'zoom' 
@@ -290,6 +299,7 @@ const ProductDetails = () => {
                             imageMode === 'contain' ? 'zoom' : 
                             imageMode === 'zoom' ? 'cover' : 'contain'
                           )}
+                          onError={handleImageError}
                           onLoad={(e) => {
                             const img = e.target;
                             const ratio = img.naturalWidth / img.naturalHeight;
@@ -301,12 +311,11 @@ const ProductDetails = () => {
                         />
                       </div>
 
-
                       {/* Image Grid Overlay with Click Handlers */}
-                      {product.images.length > 1 && (
+                      {imageUrls.length > 1 && (
                         <div className="absolute inset-0 opacity-0 hover:opacity-100 transition-opacity duration-500 bg-black/80 flex items-center justify-center">
                           <div className="grid grid-cols-3 gap-2 p-4 max-w-sm">
-                            {product.images.slice(0, 6).map((image, index) => (
+                            {imageUrls.slice(0, 6).map((imageUrl, index) => (
                               <div 
                                 key={index} 
                                 className={`aspect-square rounded-lg overflow-hidden border-2 transition-all duration-300 cursor-pointer group/thumb ${
@@ -317,29 +326,30 @@ const ProductDetails = () => {
                                 onClick={() => setCurrentImageIndex(index)}
                               >
                                 <img
-                                  src={`${import.meta.env.VITE_SERVER_URL}/${image}`}
+                                  src={imageUrl}
                                   alt={`Product ${index + 1}`}
                                   className="w-full h-full object-cover group-hover/thumb:scale-110 transition-transform duration-300"
+                                  onError={(e) => {
+                                    e.target.src = '/assets/default-product.JPG';
+                                  }}
                                 />
                               </div>
                             ))}
-                            {product.images.length > 6 && (
+                            {imageUrls.length > 6 && (
                               <div className="aspect-square rounded-lg overflow-hidden border-2 border-white/50 bg-white/20 flex items-center justify-center">
-                                <span className="text-white font-semibold">+{product.images.length - 6}</span>
+                                <span className="text-white font-semibold">+{imageUrls.length - 6}</span>
                               </div>
                             )}
                           </div>
                         </div>
                       )}
 
-
                       {/* Smart Image Count Badge */}
-                      {product.images.length > 1 && (
+                      {imageUrls.length > 1 && (
                         <div className="absolute top-4 right-4 px-3 py-1 bg-black/60 backdrop-blur-sm text-white text-sm rounded-full font-medium">
-                          {currentImageIndex + 1} / {product.images.length}
+                          {currentImageIndex + 1} / {imageUrls.length}
                         </div>
                       )}
-
 
                       {/* Improved View Mode Button */}
                       <button
@@ -356,7 +366,7 @@ const ProductDetails = () => {
                           imageMode === 'zoom' ? 'Fill Screen' : 'Fit Screen'
                         }
                       >
-                        {/* View mode icons - keep as they are */}
+                        {/* View mode icons */}
                         {imageMode === 'contain' ? (
                           <svg className="w-5 h-5 text-slate-700 group-hover/btn:text-blue-600 transition-colors" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd"/>
@@ -376,12 +386,11 @@ const ProductDetails = () => {
                         )}
                       </button>
 
-
                       {/* Enhanced Navigation Arrows */}
-                      {product.images.length > 1 && (
+                      {imageUrls.length > 1 && (
                         <>
                           <button
-                            onClick={() => setCurrentImageIndex(currentImageIndex === 0 ? product.images.length - 1 : currentImageIndex - 1)}
+                            onClick={() => setCurrentImageIndex(currentImageIndex === 0 ? imageUrls.length - 1 : currentImageIndex - 1)}
                             className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/90 backdrop-blur-sm hover:bg-white rounded-full flex items-center justify-center shadow-xl hover:shadow-2xl transition-all duration-300 group/nav hover:scale-110"
                           >
                             <svg className="w-6 h-6 text-slate-700 group-hover/nav:text-blue-600 transition-colors" fill="currentColor" viewBox="0 0 20 20">
@@ -390,7 +399,7 @@ const ProductDetails = () => {
                           </button>
                           
                           <button
-                            onClick={() => setCurrentImageIndex(currentImageIndex === product.images.length - 1 ? 0 : currentImageIndex + 1)}
+                            onClick={() => setCurrentImageIndex(currentImageIndex === imageUrls.length - 1 ? 0 : currentImageIndex + 1)}
                             className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/90 backdrop-blur-sm hover:bg-white rounded-full flex items-center justify-center shadow-xl hover:shadow-2xl transition-all duration-300 group/nav hover:scale-110"
                           >
                             <svg className="w-6 h-6 text-slate-700 group-hover/nav:text-blue-600 transition-colors" fill="currentColor" viewBox="0 0 20 20">
@@ -399,7 +408,6 @@ const ProductDetails = () => {
                           </button>
                         </>
                       )}
-
 
                       {/* Zoom Instruction */}
                       {imageMode === 'zoom' && (
@@ -421,7 +429,6 @@ const ProductDetails = () => {
                   )}
                 </div>
 
-
                 {/* Enhanced Decorative Elements */}
                 <div className="absolute -top-8 -left-8 w-16 h-16 bg-gradient-to-br from-blue-500/20 to-indigo-500/20 rounded-3xl rotate-12 opacity-70 animate-pulse shadow-lg"></div>
                 <div className="absolute -bottom-8 -right-8 w-20 h-20 bg-gradient-to-br from-indigo-500/15 to-purple-500/15 rounded-full -rotate-12 opacity-60 shadow-xl animate-pulse delay-1000"></div>
@@ -434,7 +441,6 @@ const ProductDetails = () => {
           </div>
         </div>
 
-
         {/* Right Column - Product Info (Scrollable) */}
         <div className="space-y-6">
 
@@ -443,17 +449,15 @@ const ProductDetails = () => {
               {product.title}
             </h1>
 
-
             {/* Price */}
             <div className="flex items-baseline gap-3">
               <span className="text-4xl font-bold text-gray-900 dark:text-white">
-                ${product.price?.toLocaleString()}
+                ₹{product.price?.toLocaleString()}
               </span>
               <span className="text-lg text-gray-500">
                 (Negotiable)
               </span>
             </div>
-
 
             {/* Marketplace Info */}
             <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700/50 rounded-lg p-4">
@@ -469,7 +473,6 @@ const ProductDetails = () => {
                 </div>
               </div>
             </div>
-
 
             {/* Action Buttons */}
             <div className="space-y-3 pt-4">
@@ -508,7 +511,6 @@ const ProductDetails = () => {
               </div>
             </div>
 
-
             {/* Description */}
             <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">Description</h3>
@@ -516,7 +518,6 @@ const ProductDetails = () => {
                 {product.description}
               </p>
             </div>
-
 
             {/* Features */}
             {product.tags?.length > 0 && (
@@ -534,7 +535,6 @@ const ProductDetails = () => {
                 </div>
               </div>
             )}
-
 
             {/* Product Details */}
             <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
@@ -561,8 +561,7 @@ const ProductDetails = () => {
               </div>
             </div>
 
-
-            {/* Seller Info - Simplified */}
+            {/* Seller Info - Updated profile pic URL */}
             {product.sellerId && (
               <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Seller Information</h3>
@@ -571,9 +570,12 @@ const ProductDetails = () => {
                   {product.sellerId.profilePic && (
                     <div className="relative">
                       <img
-                        src={`${import.meta.env.VITE_SERVER_URL}/${product.sellerId.profilePic}`}
+                        src={product.sellerId.firebaseProfilePic || `${product.sellerId.profilePic}`}
                         alt={product.sellerId.name}
                         className="w-12 h-12 rounded-full object-cover"
+                        onError={(e) => {
+                          e.target.src = '/assets/default-profile.JPG';
+                        }}
                       />
                       <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></div>
                     </div>
@@ -584,7 +586,6 @@ const ProductDetails = () => {
                     </h4>
                   </div>
                 </div>
-
 
                 <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3 text-sm text-gray-600 dark:text-gray-400 mt-4">
                   💬 Use the "Chat with Seller" button above to discuss price, condition, pickup/delivery options, and payment methods.
@@ -597,6 +598,5 @@ const ProductDetails = () => {
     </div>
   );
 };
-
 
 export default ProductDetails;
