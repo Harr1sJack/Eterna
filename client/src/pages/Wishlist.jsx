@@ -86,7 +86,23 @@ const Wishlist = () => {
               >
                 {/* Item image */}
                 <div className="aspect-square bg-gradient-to-br from-purple-500/10 to-indigo-500/10 rounded-xl mb-4 overflow-hidden">
-                  {item.images && item.images.length > 0 ? (
+                  {/* Check firebaseUrls first, then fallback to images */}
+                  {(item.firebaseUrls && item.firebaseUrls.length > 0) ? (
+                    <img
+                      src={item.firebaseUrls[0]}
+                      alt={item.title}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        // If Firebase URL fails, try server image path as fallback
+                        if (item.images && item.images.length > 0) {
+                          e.target.src = `${import.meta.env.VITE_SERVER_URL}/${item.images[0]}`;
+                        } else {
+                          // Final fallback to default image
+                          e.target.src = '/assets/default-product.jpg';
+                        }
+                      }}
+                    />
+                  ) : (item.images && item.images.length > 0) ? (
                     <img
                       src={`${import.meta.env.VITE_SERVER_URL}/${item.images[0]}`}
                       alt={item.title}
@@ -101,7 +117,6 @@ const Wishlist = () => {
                     </div>
                   )}
                 </div>
-
                 {/* Item details */}
                 <h4 className="font-semibold text-slate-800 dark:text-gray-200 mb-2">
                   {item.title}
